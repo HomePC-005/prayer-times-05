@@ -12,13 +12,14 @@ let todayPrayerTimes = {};
 let currentHijriDate = "";
 
 function updateClock() {
-  console.log("currentDateKey:", currentDateKey);
   const now = new Date();
 
   // Check for date change
   const todayKey = formatDate(now);
   if (todayKey !== currentDateKey && csvDataRaw) {
     console.log("New day detected. Reloading prayer data.");
+    console.log("todayKey:", todayKey);
+    console.log("currentDateKey:", currentDateKey);
     loadPrayerTimesForDate(now, csvDataRaw);
   }
 document.getElementById("current-time").textContent = now.toLocaleTimeString([], {
@@ -305,6 +306,7 @@ setInterval(() => {
 
 // (The rest of your code like loadCSVandInit, formatDate, etc., can remain the same)
 // Just make sure to replace the functions I've provided above.
+
 
 
 
