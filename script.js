@@ -129,27 +129,45 @@ function populatePrayerTable(data) {
 }
 
 function checkAndUpdatePrayerHighlight(now) {
-  let current = null;
-  const nowMs = now.getTime();
-
-  PRAYER_NAMES.forEach(name => {
-    const { hour, minute } = parseTime(todayPrayerTimes[name]);
-    const timeMs = getTimeInMs(hour, minute);
-    if (nowMs >= timeMs) current = name;
-  });
-
-  const cells = document.querySelectorAll(".prayer-cell");
-  cells.forEach(cell => {
-    cell.classList.remove("current");
-    if (cell.getAttribute("data-prayer") === current) {
-      cell.classList.add("current");
+    // GUARD CLAUSE: If prayer times are not loaded yet, do nothing.
+    if (Object.keys(todayPrayerTimes).length === 0) {
+        return;
     }
-  });
-}// updated script.js
+
+    let current = null;
+    const nowMs = now.getTime();
+
+    PRAYER_NAMES.forEach(name => {
+        const timeStr = todayPrayerTimes[name];
+        // Defensive check in case a specific prayer time is missing in the CSV
+        if (timeStr) {
+            const { hour, minute } = parseTime(timeStr);
+            const timeMs = getTimeInMs(hour, minute);
+            if (nowMs >= timeMs) {
+                current = name;
+            }
+        }
+    });
+
+    const cells = document.querySelectorAll(".prayer-cell");
+    cells.forEach(cell => {
+        cell.classList.remove("current");
+        if (cell.getAttribute("data-prayer") === current) {
+            cell.classList.add("current");
+        }
+    });
+}
+
 
 // ... (keep all the code from the top until checkAndUpdatePrayerHighlight)
 
 function updateNextPrayerTimer(now) {
+    // GUARD CLAUSE: If prayer times are not loaded yet, do nothing.
+    if (Object.keys(todayPrayerTimes).length === 0) {
+        document.getElementById("next-prayer-timer").textContent = "Memuatkan data waktu solat...";
+        return;
+    }
+
     const nowMs = now.getTime();
     nextPrayer = null;
     let tempNextTimeMs = Infinity; // Use a temporary variable
@@ -286,5 +304,6 @@ setInterval(() => {
 
 // (The rest of your code like loadCSVandInit, formatDate, etc., can remain the same)
 // Just make sure to replace the functions I've provided above.
+
 
 
