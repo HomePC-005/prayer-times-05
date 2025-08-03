@@ -93,7 +93,7 @@ function preloadAllAudio() {
 
 function formatDate(date) {
   const day = date.getDate();
-  const monthNames = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogos", "Sep", "Okt", "Nov", "Dis"];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const month = monthNames[date.getMonth()];
   const year = date.getFullYear().toString().slice(-2);
   return `${day}-${month}-${year}`;
@@ -306,6 +306,7 @@ setInterval(() => {
 
 // (The rest of your code like loadCSVandInit, formatDate, etc., can remain the same)
 // Just make sure to replace the functions I've provided above.
+
 
 
 
