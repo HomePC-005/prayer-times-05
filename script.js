@@ -10,7 +10,6 @@ let nextPrayer = null;
 let nextTimeMs = null;
 let todayPrayerTimes = {};
 let currentHijriDate = "";
-let currentDateKey;
 
 function updateClock() {
   const now = new Date();
@@ -244,3 +243,4 @@ window.addEventListener("DOMContentLoaded", () => {
 setInterval(() => {
   audioPlayed.clear();
 }, 60 * 1000);
+
