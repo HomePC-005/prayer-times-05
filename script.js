@@ -12,6 +12,7 @@ let todayPrayerTimes = {};
 let currentHijriDate = "";
 
 function updateClock() {
+  console.log("currentDateKey:", currentDateKey);
   const now = new Date();
 
   // Check for date change
@@ -304,6 +305,7 @@ setInterval(() => {
 
 // (The rest of your code like loadCSVandInit, formatDate, etc., can remain the same)
 // Just make sure to replace the functions I've provided above.
+
 
 
 
