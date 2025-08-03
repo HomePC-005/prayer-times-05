@@ -5,7 +5,7 @@ const recitationOffsetMin = 10;
 const AUDIO_NAMES = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"];
 const audioCache = {};
 const audioPlayed = new Set(); // Keeps track of filenames played in this minute
-
+let currentDateKey = "";
 let nextPrayer = null;
 let nextTimeMs = null;
 let todayPrayerTimes = {};
@@ -286,4 +286,5 @@ setInterval(() => {
 
 // (The rest of your code like loadCSVandInit, formatDate, etc., can remain the same)
 // Just make sure to replace the functions I've provided above.
+
 
