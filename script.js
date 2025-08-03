@@ -145,102 +145,145 @@ function checkAndUpdatePrayerHighlight(now) {
       cell.classList.add("current");
     }
   });
-}
+}// updated script.js
+
+// ... (keep all the code from the top until checkAndUpdatePrayerHighlight)
+
 function updateNextPrayerTimer(now) {
-  const nowMs = now.getTime();
-  nextPrayer = null;
-  nextTimeMs = Infinity;
+    const nowMs = now.getTime();
+    nextPrayer = null;
+    let tempNextTimeMs = Infinity; // Use a temporary variable
 
-  PRAYER_NAMES.forEach(name => {
-    const { hour, minute } = parseTime(todayPrayerTimes[name]);
-    const timeMs = getTimeInMs(hour, minute);
-    if (timeMs > nowMs && timeMs < nextTimeMs) {
-      nextTimeMs = timeMs;
-      nextPrayer = name;
+    PRAYER_NAMES.forEach(name => {
+        // Ensure todayPrayerTimes[name] exists before parsing
+        if (todayPrayerTimes[name]) {
+            const { hour, minute } = parseTime(todayPrayerTimes[name]);
+            const timeMs = getTimeInMs(hour, minute);
+            if (timeMs > nowMs && timeMs < tempNextTimeMs) {
+                tempNextTimeMs = timeMs;
+                nextPrayer = name;
+            }
+        }
+    });
+
+    nextTimeMs = tempNextTimeMs; // Assign to the global variable
+
+    if (!nextPrayer) {
+        document.getElementById("next-prayer-timer").textContent = "Semua waktu solat untuk hari ini telah selesai.";
+        // Optional: You could add logic here to find the next day's Subuh prayer.
+        return;
     }
-  });
 
-  if (!nextPrayer) {
-    document.getElementById("next-prayer-timer").textContent = "All prayers done for today.";
-    return;
-  }
-
-  const diffMs = nextTimeMs - nowMs;
-  const totalSecs = Math.floor(diffMs / 1000);
-  const hours = Math.floor(totalSecs / 3600);
-  const mins = Math.floor((totalSecs % 3600) / 60);
-  const secs = totalSecs % 60;
-  document.getElementById("next-prayer-timer").textContent =
-  `Waktu Solat (${nextPrayer}) dalam ${hours}h ${mins}m ${secs}s`;
-
-
+    const diffMs = nextTimeMs - nowMs;
+    const totalSecs = Math.floor(diffMs / 1000);
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const secs = totalSecs % 60;
+    document.getElementById("next-prayer-timer").textContent =
+        `Waktu Solat (${nextPrayer}) dalam ${String(hours).padStart(2, '0')}j ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
 }
 
-  // Audio triggers
+
+// Audio triggers
 function checkPrayerAudio(now) {
-  const nowMs = now.getTime();
-  const nowMinuteKey = `${now.getHours()}:${now.getMinutes()}`;
+    // Exit if there's no next prayer or its time is not calculated yet
+    if (!nextPrayer || !nextTimeMs) {
+        return;
+    }
 
-  const reciteTime = nextTimeMs - recitationOffsetMin * 60000;
-  const reciteFile = `${nextPrayer.toLowerCase()}_recite.mp3`;
-  const adhanFile = `${nextPrayer.toLowerCase()}_adhan.mp3`;
+    const nowMs = now.getTime();
+    const nowMinuteKey = `${now.getHours()}:${now.getMinutes()}`;
 
-//new add 
+    const reciteTime = nextTimeMs - recitationOffsetMin * 60 * 1000;
+    const reciteFile = `${nextPrayer.toLowerCase()}_recite.mp3`;
+    const adhanFile = `${nextPrayer.toLowerCase()}_adhan.mp3`;
 
-if (nextPrayer) {
-  const reciteFilename = `${nextPrayer.toLowerCase()}_recite.mp3`;
-  const adhanFilename = `${nextPrayer.toLowerCase()}_adhan.mp3`;
+    // Check for Recitation audio
+    // Math.abs(nowMs - reciteTime) < 1000 checks if we are within 1 second of the target time
+    if (Math.abs(nowMs - reciteTime) < 1000 && !audioPlayed.has(reciteFile)) {
+        console.log(`Playing recitation for ${nextPrayer}`);
+        playAudio(reciteFile);
+        audioPlayed.add(reciteFile); // Prevent re-playing this specific file
+    }
 
-  const reciteTime = nextTimeMs - recitationOffsetMin * 60000;
-  if (Math.abs(nowMs - reciteTime) < 1000) {
-    playAudio(reciteFilename);
-  }
-
-  if (Math.abs(nowMs - nextTimeMs) < 1000) {
-    playAudio(adhanFilename);
-  }
-
-  document.getElementById("button-adhan").addEventListener("click", () => {
-playAudio(adhanFilename)
-  });
-
-  document.getElementById("button-recite").addEventListener("click", () => {
-playAudio(reciteFilename)
-  });
-}
-
-
-  if (Math.abs(nowMs - reciteTime) < 1000 && !audioPlayed.has(`${reciteFile}-${nowMinuteKey}`)) {
-    playAudio(reciteFile);
-    audioPlayed.add(`${reciteFile}-${nowMinuteKey}`);
-  }
-
-  if (Math.abs(nowMs - nextTimeMs) < 1000 && !audioPlayed.has(`${adhanFile}-${nowMinuteKey}`)) {
-    playAudio(adhanFile);
-    audioPlayed.add(`${adhanFile}-${nowMinuteKey}`);
-  }
+    // Check for Adhan audio
+    if (Math.abs(nowMs - nextTimeMs) < 1000 && !audioPlayed.has(adhanFile)) {
+        console.log(`Playing adhan for ${nextPrayer}`);
+        playAudio(adhanFile);
+        audioPlayed.add(adhanFile); // Prevent re-playing this specific file
+    }
 }
 
 
 function playAudio(filename) {
-  const audio = audioCache[filename];
-  if (audio) {
-    audio.currentTime = 0;
-    audio.play().catch(e => console.error("Audio play error:", e));
-  } else {
-    console.warn("Audio not preloaded:", filename);
-  }
+    if (!filename) {
+        console.warn("playAudio called with no filename.");
+        return;
+    }
+    const audio = audioCache[filename];
+    if (audio) {
+        console.log("Playing:", filename);
+        audio.currentTime = 0;
+        audio.play().catch(e => console.error("Audio play error:", e));
+    } else {
+        console.warn("Audio not preloaded:", filename);
+    }
+}
+
+/**
+ * Sets up event listeners for UI elements that should only be configured once.
+ */
+function setupEventListeners() {
+    // Handles the start screen button
+    const startButton = document.getElementById("start-button");
+    if (startButton) {
+        startButton.addEventListener("click", () => {
+            document.getElementById("start-screen").style.display = "none";
+            // Attempt to unlock audio playback on all browsers
+            Object.values(audioCache).forEach(audio => {
+                audio.play().then(() => audio.pause()).catch(() => {});
+                audio.currentTime = 0;
+            });
+        });
+    }
+
+    // Uncomment these lines in your HTML to use the test buttons
+    // const adhanButton = document.getElementById("button-adhan");
+    // if (adhanButton) {
+    //     adhanButton.addEventListener("click", () => {
+    //         if (nextPrayer) {
+    //             const adhanFilename = `${nextPrayer.toLowerCase()}_adhan.mp3`;
+    //             playAudio(adhanFilename);
+    //         }
+    //     });
+    // }
+
+    // const reciteButton = document.getElementById("button-recite");
+    // if (reciteButton) {
+    //     reciteButton.addEventListener("click", () => {
+    //         if (nextPrayer) {
+    //             const reciteFilename = `${nextPrayer.toLowerCase()}_recite.mp3`;
+    //             playAudio(reciteFilename);
+    //         }
+    //     });
+    // }
 }
 
 
 // Start
-
 window.addEventListener("DOMContentLoaded", () => {
-  preloadAllAudio();
-  loadCSVandInit();
+    preloadAllAudio();
+    loadCSVandInit();
+    setupEventListeners(); // <-- ADD THIS LINE
 });
 
+// This interval clears the record of which audios have played.
+// It resets every minute, allowing audio to be triggered again if conditions are met in a new minute.
 setInterval(() => {
-  audioPlayed.clear();
+    console.log("Clearing audioPlayed set for the new minute.");
+    audioPlayed.clear();
 }, 60 * 1000);
+
+// (The rest of your code like loadCSVandInit, formatDate, etc., can remain the same)
+// Just make sure to replace the functions I've provided above.
 
