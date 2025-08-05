@@ -1,315 +1,620 @@
-const PRAYER_NAMES = ["Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"];
-const audioQueue = [];
-const recitationOffsetMin = 10;
-
-const AUDIO_NAMES = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"];
-const audioCache = {};
-const audioPlayed = new Set(); // Keeps track of filenames played in this minute
-let currentDateKey = null;
-let nextPrayer = null;
-let nextTimeMs = null;
-let todayPrayerTimes = {};
-let currentHijriDate = "";
-
-function updateClock() {
-  const now = new Date();
-
-  // Check for date change
-  const todayKey = formatDate(now);
-  if (todayKey !== currentDateKey && csvDataRaw) {
-    console.log("New day detected. Reloading prayer data.");
-    console.log("todayKey:", todayKey);
-    console.log("currentDateKey:", currentDateKey);
-    loadPrayerTimesForDate(now, csvDataRaw);
-  }
-document.getElementById("current-time").textContent = now.toLocaleTimeString([], {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: true
-  });
-document.getElementById("gregorian-date").textContent = formatLongDate(now);
-  checkAndUpdatePrayerHighlight(now);
-  updateNextPrayerTimer(now);
-  checkPrayerAudio(now); 
-}
-
-function formatLongDate(date) {
-  const days = ["Ahad", "Isnin", "Selasa", "Rabu", "Khamis", "Jumaat", "Sabtu"];
-  const months = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogos", "Sep", "Okt", "Nov", "Dis"];
-  const dayName = days[date.getDay()];
-  const dayNum = String(date.getDate()).padStart(2, '0');
-  const monthName = months[date.getMonth()];
-  const year = date.getFullYear();
-  return `${dayName}, ${dayNum} ${monthName} ${year}`;
-}
-
-function loadPrayerTimesForDate(date, csvText) {
-  const lines = csvText.trim().split("\n");
-  const headers = lines[0].split(",");
-  const dateKey = formatDate(date); // "1-Jan-25"
-
-  for (let i = 1; i < lines.length; i++) {
-    const row = lines[i].split(",");
-    if (row[0] === dateKey) {
-      todayPrayerTimes = {};
-      headers.forEach((h, idx) => {
-        todayPrayerTimes[h.trim()] = row[idx].trim();
-      });
-      currentHijriDate = todayPrayerTimes["Date Hijri"];
-      currentDateKey = dateKey;
-      document.getElementById("hijri-date").textContent = `Tarikh Hijri: ${currentHijriDate}`;
-      populatePrayerTable(todayPrayerTimes);
-      console.log("Prayer times loaded for:", dateKey);
-      break;
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Aplikasi Waktu Solat - Prayer Time Application">
+  <meta name="theme-color" content="#1e293b">
+  <title>Jam Waktu Solat - Prayer Time Clock</title>
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="prayer_times.csv" as="fetch" crossorigin>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23facc15'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>">
+  
+  <style>
+    /* CSS Reset and Base Styles */
+    * {
+      box-sizing: border-box;
     }
-  }
-}
-
-let csvDataRaw = ""; // to keep loaded CSV for reuse
-
-function loadCSVandInit() {
-  fetch("prayer_times.csv")
-    .then(res => res.text())
-    .then(csvText => {
-      csvDataRaw = csvText; // Save it globally for reuse
-      const today = new Date();
-      loadPrayerTimesForDate(today, csvDataRaw);
-      setInterval(updateClock, 1000);
-      updateClock();
-    });
-}
-
-function preloadAllAudio() {
-  AUDIO_NAMES.forEach(name => {
-    const recite = new Audio(`${name}_recite.mp3`);
-    const adhan = new Audio(`${name}_adhan.mp3`);
-    recite.preload = "auto";
-    adhan.preload = "auto";
-    audioCache[`${name}_recite.mp3`] = recite;
-    audioCache[`${name}_adhan.mp3`] = adhan;
-  });
-}
-
-
-function formatDate(date) {
-  const day = date.getDate();
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const month = monthNames[date.getMonth()];
-  const year = date.getFullYear().toString().slice(-2);
-  return `${day}-${month}-${year}`;
-}
-
-function parseTime(str) {
-  const [time, modifier] = str.split(" ");
-  let [hour, minute] = time.split(":").map(Number);
-  if (modifier === "PM" && hour !== 12) hour += 12;
-  if (modifier === "AM" && hour === 12) hour = 0;
-  return { hour, minute };
-}
-
-function getTimeInMs(hour, minute) {
-  const now = new Date();
-  const time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
-  return time.getTime();
-}
-
-function populatePrayerTable(data) {
-  const container = document.getElementById("prayer-table");
-  container.innerHTML = ""; // clear previous
-
-  PRAYER_NAMES.forEach(name => {
-    const time = data[name];
-    const cell = document.createElement("div");
-    cell.classList.add("prayer-cell");
-    cell.setAttribute("data-prayer", name);
-    cell.innerHTML = `
-      <div class="prayer-name">${name}</div>
-      <div class="prayer-time">${time}</div>
-    `;
-    container.appendChild(cell);
-  });
-}
-
-function checkAndUpdatePrayerHighlight(now) {
-    // GUARD CLAUSE: If prayer times are not loaded yet, do nothing.
-    if (Object.keys(todayPrayerTimes).length === 0) {
-        return;
+    
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+      color: #f8fafc;
+      overflow: hidden;
+      position: relative;
     }
-
-    let current = null;
-    const nowMs = now.getTime();
-
-    PRAYER_NAMES.forEach(name => {
-        const timeStr = todayPrayerTimes[name];
-        // Defensive check in case a specific prayer time is missing in the CSV
-        if (timeStr) {
-            const { hour, minute } = parseTime(timeStr);
-            const timeMs = getTimeInMs(hour, minute);
-            if (nowMs >= timeMs) {
-                current = name;
-            }
-        }
-    });
-
-    const cells = document.querySelectorAll(".prayer-cell");
-    cells.forEach(cell => {
-        cell.classList.remove("current");
-        if (cell.getAttribute("data-prayer") === current) {
-            cell.classList.add("current");
-        }
-    });
-}
-
-
-// ... (keep all the code from the top until checkAndUpdatePrayerHighlight)
-
-function updateNextPrayerTimer(now) {
-    // GUARD CLAUSE: If prayer times are not loaded yet, do nothing.
-    if (Object.keys(todayPrayerTimes).length === 0) {
-        document.getElementById("next-prayer-timer").textContent = "Memuatkan data waktu solat...";
-        return;
+    
+    /* Animated background */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
+      animation: backgroundShift 20s ease-in-out infinite;
+      pointer-events: none;
     }
-
-    const nowMs = now.getTime();
-    nextPrayer = null;
-    let tempNextTimeMs = Infinity; // Use a temporary variable
-
-    PRAYER_NAMES.forEach(name => {
-        // Ensure todayPrayerTimes[name] exists before parsing
-        if (todayPrayerTimes[name]) {
-            const { hour, minute } = parseTime(todayPrayerTimes[name]);
-            const timeMs = getTimeInMs(hour, minute);
-            if (timeMs > nowMs && timeMs < tempNextTimeMs) {
-                tempNextTimeMs = timeMs;
-                nextPrayer = name;
-            }
-        }
-    });
-
-    nextTimeMs = tempNextTimeMs; // Assign to the global variable
-
-    if (!nextPrayer) {
-        document.getElementById("next-prayer-timer").textContent = "Semua waktu solat untuk hari ini telah selesai.";
-        // Optional: You could add logic here to find the next day's Subuh prayer.
-        return;
+    
+    @keyframes backgroundShift {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 0.6; }
     }
-
-    const diffMs = nextTimeMs - nowMs;
-    const totalSecs = Math.floor(diffMs / 1000);
-    const hours = Math.floor(totalSecs / 3600);
-    const mins = Math.floor((totalSecs % 3600) / 60);
-    const secs = totalSecs % 60;
-    document.getElementById("next-prayer-timer").textContent =
-        `Waktu Solat (${nextPrayer}) dalam ${String(hours).padStart(2, '0')}j ${String(mins).padStart(2, '0')}m ${String(secs).padStart(2, '0')}s`;
-}
-
-
-// Audio triggers
-function checkPrayerAudio(now) {
-    // Exit if there's no next prayer or its time is not calculated yet
-    if (!nextPrayer || !nextTimeMs) {
-        return;
+    
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      z-index: 1;
     }
-
-    const nowMs = now.getTime();
-    const nowMinuteKey = `${now.getHours()}:${now.getMinutes()}`;
-
-    const reciteTime = nextTimeMs - recitationOffsetMin * 60 * 1000;
-    const reciteFile = `${nextPrayer.toLowerCase()}_recite.mp3`;
-    const adhanFile = `${nextPrayer.toLowerCase()}_adhan.mp3`;
-
-    // Check for Recitation audio
-    // Math.abs(nowMs - reciteTime) < 1000 checks if we are within 1 second of the target time
-    if (Math.abs(nowMs - reciteTime) < 1000 && !audioPlayed.has(reciteFile)) {
-        console.log(`Playing recitation for ${nextPrayer}`);
-        playAudio(reciteFile);
-        audioPlayed.add(reciteFile); // Prevent re-playing this specific file
+    
+    /* Start Screen */
+    #start-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
     }
-
-    // Check for Adhan audio
-    if (Math.abs(nowMs - nextTimeMs) < 1000 && !audioPlayed.has(adhanFile)) {
-        console.log(`Playing adhan for ${nextPrayer}`);
-        playAudio(adhanFile);
-        audioPlayed.add(adhanFile); // Prevent re-playing this specific file
+    
+    #start-button {
+      padding: 30px 60px;
+      font-size: 2.5rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-}
-
-
-function playAudio(filename) {
-    if (!filename) {
-        console.warn("playAudio called with no filename.");
-        return;
+    
+    #start-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 40px rgba(2, 132, 199, 0.4);
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
     }
-    const audio = audioCache[filename];
-    if (audio) {
-        console.log("Playing:", filename);
-        audio.currentTime = 0;
-        audio.play().catch(e => console.error("Audio play error:", e));
-    } else {
-        console.warn("Audio not preloaded:", filename);
+    
+    #start-button:active {
+      transform: translateY(-2px);
     }
-}
-
-/**
- * Sets up event listeners for UI elements that should only be configured once.
- */
-function setupEventListeners() {
-    // Handles the start screen button
-    const startButton = document.getElementById("start-button");
-    if (startButton) {
-        startButton.addEventListener("click", () => {
-            document.getElementById("start-screen").style.display = "none";
-            // Attempt to unlock audio playback on all browsers
-            Object.values(audioCache).forEach(audio => {
-                audio.play().then(() => audio.pause()).catch(() => {});
-                audio.currentTime = 0;
-            });
+    
+    .start-message {
+      margin-top: 30px;
+      font-size: 1.2rem;
+      opacity: 0.8;
+      text-align: center;
+      max-width: 600px;
+      line-height: 1.6;
+    }
+    
+    /* Loading State */
+    .loading {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    
+    /* Error Message */
+    #error-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 500;
+      box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+      z-index: 10000;
+      display: none;
+      max-width: 400px;
+      animation: slideInRight 0.3s ease;
+    }
+    
+    @keyframes slideInRight {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    /* Top Section */
+    .top-section {
+      text-align: center;
+      animation: fadeInUp 1s ease 0.5s both;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .gregorian-date {
+      font-size: 4rem;
+      margin: 0.1em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    
+    .hijri-date {
+      font-size: 2rem;
+      margin: 0.1em;
+      opacity: 0.9;
+      font-weight: 400;
+    }
+    
+    .clock {
+      font-size: 6rem;
+      font-weight: bold;
+      margin: 0.1em 0;
+    }
+    
+    #current-time {
+      font-size: 20rem;
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+      font-weight: 300;
+      background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; }
+    }
+    
+    .next-prayer {
+      font-size: 3.5rem;
+      background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-top: 0.1em;
+      font-weight: 600;
+      animation: glow 3s ease-in-out infinite;
+    }
+    
+    @keyframes glow {
+      0%, 100% { filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.3)); }
+      50% { filter: drop-shadow(0 0 20px rgba(250, 204, 21, 0.6)); }
+    }
+    
+    /* Prayer Table */
+    .prayer-table {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 25px;
+      width: 100%;
+      max-width: 1800px;
+      margin-top: 20px;
+      animation: fadeInUp 1s ease 1s both;
+    }
+    
+    .prayer-cell {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 25px 20px;
+      text-align: center;
+      border-radius: 20px;
+      font-size: 2rem;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .prayer-cell::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .prayer-cell:hover::before {
+      left: 100%;
+    }
+    
+    .prayer-cell.current {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      color: white;
+      font-weight: bold;
+      transform: scale(1.05);
+      box-shadow: 
+        0 20px 40px rgba(2, 132, 199, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+      animation: currentPrayer 2s ease-in-out infinite;
+    }
+    
+    @keyframes currentPrayer {
+      0%, 100% { box-shadow: 0 20px 40px rgba(2, 132, 199, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1); }
+      50% { box-shadow: 0 25px 50px rgba(2, 132, 199, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.2); }
+    }
+    
+    .prayer-name {
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-size: 1em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .prayer-time {
+      font-size: 1.4em;
+      font-weight: 400;
+      font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+    }
+    
+    /* Test Buttons (Hidden by default) */
+    .test-buttons {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: none;
+      gap: 10px;
+      z-index: 1000;
+    }
+    
+    .test-buttons.visible {
+      display: flex;
+    }
+    
+    .test-btn {
+      padding: 10px 20px;
+      background: rgba(30, 41, 59, 0.9);
+      color: white;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+    
+    .test-btn:hover {
+      background: rgba(51, 65, 85, 0.9);
+      transform: translateY(-2px);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 1400px) {
+      #current-time {
+        font-size: 16rem;
+      }
+      .gregorian-date {
+        font-size: 3rem;
+      }
+      .next-prayer {
+        font-size: 2.8rem;
+      }
+      .prayer-cell {
+        font-size: 1.6rem;
+        padding: 20px 15px;
+      }
+    }
+    
+    @media (max-width: 1280px) {
+      body {
+        padding: 15px;
+      }
+      #current-time {
+        font-size: 14rem;
+      }
+      .gregorian-date {
+        font-size: 2.5rem;
+      }
+      .hijri-date {
+        font-size: 1.6rem;
+      }
+      .next-prayer {
+        font-size: 2.4rem;
+      }
+      .prayer-table {
+        gap: 20px;
+      }
+      .prayer-cell {
+        font-size: 1.4rem;
+        padding: 18px 12px;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+      .prayer-table {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+      }
+      #current-time {
+        font-size: 10rem;
+      }
+      .gregorian-date {
+        font-size: 2rem;
+      }
+      .hijri-date {
+        font-size: 1.4rem;
+      }
+      .next-prayer {
+        font-size: 2rem;
+      }
+      .prayer-cell {
+        font-size: 1.2rem;
+        padding: 15px 10px;
+      }
+      #start-button {
+        font-size: 2rem;
+        padding: 25px 50px;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .prayer-table {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      #current-time {
+        font-size: 8rem;
+      }
+      .gregorian-date {
+        font-size: 1.6rem;
+      }
+      .next-prayer {
+        font-size: 1.6rem;
+      }
+      .prayer-cell {
+        font-size: 1rem;
+        padding: 12px 8px;
+      }
+    }
+    
+    /* Print Styles */
+    @media print {
+      body {
+        background: white;
+        color: black;
+      }
+      #start-screen,
+      .test-buttons {
+        display: none !important;
+      }
+    }
+    
+    /* Dark mode support */
+    @media (prefers-color-scheme: light) {
+      /* Keep dark theme for this app */
+    }
+    
+    /* Reduced motion support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    
+    /* High contrast support */
+    @media (prefers-contrast: high) {
+      .prayer-cell {
+        border: 2px solid white;
+      }
+      .prayer-cell.current {
+        border: 3px solid yellow;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Error Message Display -->
+  <div id="error-message" role="alert" aria-live="polite"></div>
+  
+  <!-- Start Screen -->
+  <div id="start-screen" role="dialog" aria-labelledby="start-title" aria-describedby="start-desc">
+    <button id="start-button" aria-describedby="start-desc">
+      🕌 Klik untuk Mula Operasi
+    </button>
+    <div class="start-message" id="start-desc">
+      Aplikasi ini memerlukan kebenaran untuk memainkan audio azan dan bacaan.<br>
+      Klik butang di atas untuk memulakan aplikasi waktu solat.
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <main class="top-section" role="main">
+    <div class="gregorian-date" id="gregorian-date" aria-label="Tarikh Gregorian">
+      Loading date...
+    </div>
+    <div class="hijri-date" id="hijri-date" aria-label="Tarikh Hijri">
+      Tarikh Hijri: --/--/----
+    </div>
+    <time class="clock" id="current-time" aria-label="Masa semasa">
+      --:--:--
+    </time>
+    <div class="next-prayer" id="next-prayer-timer" aria-label="Waktu solat seterusnya" aria-live="polite">
+      Seterusnya: --
+    </div>
+  </main>
+  
+  <!-- Prayer Times Grid -->
+  <section class="prayer-table" id="prayer-table" role="region" aria-label="Jadual waktu solat">
+    <!-- Prayer cells will be generated by JavaScript -->
+  </section>
+  
+  <!-- Test Buttons (Hidden, can be shown for testing) -->
+  <div class="test-buttons" id="test-buttons">
+    <button class="test-btn" id="button-adhan" aria-label="Test Adhan">🔊 Test Azan</button>
+    <button class="test-btn" id="button-recite" aria-label="Test Recite">📖 Test Bacaan</button>
+    <button class="test-btn" id="toggle-test" aria-label="Hide Test Buttons">❌</button>
+  </div>
+  
+  <!-- Loading indicator -->
+  <div id="loading-indicator" style="display: none;" aria-label="Sedang memuatkan">
+    <div style="text-align: center; font-size: 1.2rem; opacity: 0.7;">
+      🕌 Memuatkan data waktu solat...
+    </div>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="script.js" defer></script>
+  
+  <script>
+    // Enhanced start screen handler with better UX
+    document.addEventListener('DOMContentLoaded', function() {
+      const startButton = document.getElementById('start-button');
+      const startScreen = document.getElementById('start-screen');
+      const loadingIndicator = document.getElementById('loading-indicator');
+      
+      if (startButton && startScreen) {
+        startButton.addEventListener('click', function() {
+          // Add loading state
+          startButton.textContent = '🕌 Memulakan...';
+          startButton.disabled = true;
+          startButton.style.opacity = '0.7';
+          
+          // Show loading indicator
+          loadingIndicator.style.display = 'block';
+          
+          // Hide start screen with animation
+          setTimeout(() => {
+            startScreen.style.opacity = '0';
+            startScreen.style.transition = 'opacity 0.5s ease';
+            
+            setTimeout(() => {
+              startScreen.style.display = 'none';
+              loadingIndicator.style.display = 'none';
+            }, 500);
+          }, 1000);
         });
+      }
+      
+      // Show test buttons on triple click (for development)
+      let clickCount = 0;
+      document.addEventListener('click', function() {
+        clickCount++;
+        if (clickCount === 3) {
+          const testButtons = document.getElementById('test-buttons');
+          if (testButtons) {
+            testButtons.classList.add('visible');
+          }
+          clickCount = 0;
+        }
+        setTimeout(() => { clickCount = 0; }, 1000);
+      });
+      
+      // Hide test buttons
+      const toggleTest = document.getElementById('toggle-test');
+      if (toggleTest) {
+        toggleTest.addEventListener('click', function() {
+          const testButtons = document.getElementById('test-buttons');
+          if (testButtons) {
+            testButtons.classList.remove('visible');
+          }
+        });
+      }
+      
+      // Prevent right-click context menu for cleaner presentation
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+      });
+      
+      // Handle visibility change (when tab becomes active/inactive)
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'visible') {
+          // Refresh when tab becomes active
+          if (window.prayerApp && window.prayerApp.updateClock) {
+            window.prayerApp.updateClock();
+          }
+        }
+      });
+      
+      // Add keyboard shortcuts
+      document.addEventListener('keydown', function(e) {
+        // F11 for fullscreen
+        if (e.key === 'F11') {
+          e.preventDefault();
+          if (document.fullscreenElement) {
+            document.exitFullscreen();
+          } else {
+            document.documentElement.requestFullscreen();
+          }
+        }
+        
+        // Escape to exit fullscreen
+        if (e.key === 'Escape' && document.fullscreenElement) {
+          document.exitFullscreen();
+        }
+      });
+    });
+    
+    // Service Worker registration for offline functionality (GitHub Pages compatible)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function() {
+        // Only register if we have a service worker file
+        fetch('/sw.js', { method: 'HEAD' })
+          .then(response => {
+            if (response.ok) {
+              navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                  console.log('SW registered: ', registration);
+                })
+                .catch(registrationError => {
+                  console.log('SW registration failed: ', registrationError);
+                });
+            }
+          })
+          .catch(() => {
+            // Service worker file doesn't exist, that's okay
+            console.log('No service worker found');
+          });
+      });
     }
-
-    // Uncomment these lines in your HTML to use the test buttons
-    // const adhanButton = document.getElementById("button-adhan");
-    // if (adhanButton) {
-    //     adhanButton.addEventListener("click", () => {
-    //         if (nextPrayer) {
-    //             const adhanFilename = `${nextPrayer.toLowerCase()}_adhan.mp3`;
-    //             playAudio(adhanFilename);
-    //         }
-    //     });
-    // }
-
-    // const reciteButton = document.getElementById("button-recite");
-    // if (reciteButton) {
-    //     reciteButton.addEventListener("click", () => {
-    //         if (nextPrayer) {
-    //             const reciteFilename = `${nextPrayer.toLowerCase()}_recite.mp3`;
-    //             playAudio(reciteFilename);
-    //         }
-    //     });
-    // }
-}
-
-
-// Start
-window.addEventListener("DOMContentLoaded", () => {
-    preloadAllAudio();
-    loadCSVandInit();
-    setupEventListeners(); // <-- ADD THIS LINE
-});
-
-// This interval clears the record of which audios have played.
-// It resets every minute, allowing audio to be triggered again if conditions are met in a new minute.
-setInterval(() => {
-    console.log("Clearing audioPlayed set for the new minute.");
-    audioPlayed.clear();
-}, 60 * 1000);
-
-// (The rest of your code like loadCSVandInit, formatDate, etc., can remain the same)
-// Just make sure to replace the functions I've provided above.
-
-
-
-
-
-
-
+  </script>
+</body>
+</html>
