@@ -3,63 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Aplikasi Waktu Solat - Prayer Time Application">
-  <meta name="theme-color" content="#1e293b">
-  <title>Jam Waktu Solat - Prayer Time Clock</title>
-  
-  <!-- Preload critical resources -->
-  <link rel="preload" href="prayer_times.csv" as="fetch" crossorigin>
-  
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23facc15'><path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'/></svg>">
+  <title>Jam Waktu Solat</title>
   
   <style>
-    /* CSS Reset and Base Styles */
+    /* Simple reset for older browsers */
     * {
+      margin: 0;
+      padding: 0;
       box-sizing: border-box;
     }
     
     html, body {
-      margin: 0;
-      padding: 0;
       height: 100%;
       width: 100%;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-      color: #f8fafc;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: #1a1a1a;
+      color: #ffffff;
       overflow: hidden;
-      position: relative;
-    }
-    
-    /* Animated background */
-    body::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: 
-        radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.1) 0%, transparent 50%);
-      animation: backgroundShift 20s ease-in-out infinite;
-      pointer-events: none;
-    }
-    
-    @keyframes backgroundShift {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.6; }
     }
     
     body {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px;
-      position: relative;
-      z-index: 1;
+      display: table;
+      width: 100%;
+      height: 100%;
+      text-align: center;
     }
     
     /* Start Screen */
@@ -67,57 +34,32 @@
       position: fixed;
       top: 0;
       left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+      width: 100%;
+      height: 100%;
+      background-color: #2a2a2a;
       z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
+      display: table;
+    }
+    
+    #start-screen .inner {
+      display: table-cell;
+      vertical-align: middle;
+      text-align: center;
     }
     
     #start-button {
       padding: 30px 60px;
-      font-size: 2.5rem;
-      font-weight: 600;
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      font-size: 2.5em;
+      font-weight: bold;
+      background-color: #0066cc;
       color: white;
       border: none;
-      border-radius: 20px;
+      border-radius: 10px;
       cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.3);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      width: 100%;
-      height: 100%;
     }
     
     #start-button:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 20px 40px rgba(2, 132, 199, 0.4);
-      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
-    }
-    
-    #start-button:active {
-      transform: translateY(-2px);
-    }
-    
-    .start-message {
-      margin-top: 30px;
-      font-size: 1.2rem;
-      opacity: 0.8;
-      text-align: center;
-      max-width: 600px;
-      line-height: 1.6;
-    }
-    
-    /* Loading State */
-    .loading {
-      opacity: 0.5;
-      pointer-events: none;
+      background-color: #0052a3;
     }
     
     /* Error Message */
@@ -125,243 +67,136 @@
       position: fixed;
       top: 20px;
       right: 20px;
-      background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+      background-color: #cc0000;
       color: white;
       padding: 15px 25px;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      font-weight: 500;
-      box-shadow: 0 10px 30px rgba(220, 38, 38, 0.3);
+      border-radius: 5px;
+      font-size: 1.1em;
       z-index: 10000;
       display: none;
       max-width: 400px;
-      animation: slideInRight 0.3s ease;
     }
     
-    @keyframes slideInRight {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
+    /* Main Container */
+    .main-container {
+      display: table-cell;
+      vertical-align: middle;
+      padding: 20px;
     }
     
     /* Top Section */
     .top-section {
-      text-align: center;
-      animation: fadeInUp 1s ease 0.5s both;
-    }
-    
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      margin-bottom: 30px;
     }
     
     .gregorian-date {
-      font-size: 4rem;
-      margin: 0.1em;
+      font-size: 3em;
+      margin-bottom: 10px;
       text-transform: uppercase;
-      background: linear-gradient(135deg, #7dd3fc 0%, #0ea5e9 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      font-weight: 700;
-      letter-spacing: 2px;
+      color: #87ceeb;
+      font-weight: bold;
     }
     
     .hijri-date {
-      font-size: 2rem;
-      margin: 0.1em;
-      opacity: 0.9;
-      font-weight: 400;
-    }
-    
-    .clock {
-      font-size: 6rem;
-      font-weight: bold;
-      margin: 0.1em 0;
+      font-size: 1.8em;
+      margin-bottom: 15px;
+      color: #cccccc;
     }
     
     #current-time {
-      font-size: 20rem;
-      font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
-      font-weight: 300;
-      background: white;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: white;
-      background-clip: text;
-      text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
-      animation: pulse 2s ease-in-out infinite;
-    }
-    
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.8; }
+      font-size: 8em;
+      font-family: "Courier New", monospace;
+      font-weight: bold;
+      color: #ffffff;
+      margin: 20px 0;
     }
     
     .next-prayer {
-      font-size: 3.5rem;
-      background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-top: 0.1em;
-      font-weight: 600;
-      animation: glow 3s ease-in-out infinite;
-    }
-    
-    @keyframes glow {
-      0%, 100% { filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.3)); }
-      50% { filter: drop-shadow(0 0 20px rgba(250, 204, 21, 0.6)); }
+      font-size: 2.5em;
+      color: #ffcc00;
+      margin-top: 15px;
+      font-weight: bold;
     }
     
     /* Prayer Table */
     .prayer-table {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 25px;
       width: 100%;
-      max-width: 1800px;
-      margin-top: 20px;
-      animation: fadeInUp 1s ease 1s both;
+      max-width: 1200px;
+      margin: 0 auto;
+      border-collapse: separate;
+      border-spacing: 15px;
     }
     
-    .prayer-cell {
-      background: rgba(30, 41, 59, 0.8);
-      backdrop-filter: blur(10px);
-      padding: 25px 20px;
+    .prayer-table td {
+      background-color: #333333;
+      padding: 20px 15px;
       text-align: center;
-      border-radius: 20px;
-      font-size: 2rem;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid rgba(148, 163, 184, 0.1);
-      position: relative;
-      overflow: hidden;
+      border-radius: 8px;
+      font-size: 1.8em;
+      border: 2px solid transparent;
+      width: 16.66%;
     }
     
-    .prayer-cell::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-      transition: left 0.5s ease;
-    }
-    
-    .prayer-cell:hover::before {
-      left: 100%;
-    }
-    
-    .prayer-cell.current {
-      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    .prayer-table td.current {
+      background-color: #0066cc;
       color: white;
       font-weight: bold;
-      transform: scale(1.05);
-      box-shadow: 
-        0 20px 40px rgba(2, 132, 199, 0.3),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
-      animation: currentPrayer 2s ease-in-out infinite;
-    }
-    
-    @keyframes currentPrayer {
-      0%, 100% { box-shadow: 0 20px 40px rgba(2, 132, 199, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1); }
-      50% { box-shadow: 0 25px 50px rgba(2, 132, 199, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.2); }
+      border-color: #ffffff;
     }
     
     .prayer-name {
-      font-weight: 700;
-      margin-bottom: 15px;
+      font-weight: bold;
+      margin-bottom: 8px;
       font-size: 1em;
-      text-transform: uppercase;
-      letter-spacing: 1px;
     }
     
     .prayer-time {
-      font-size: 1.4em;
-      font-weight: 400;
-      font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+      font-size: 1.2em;
+      font-family: "Courier New", monospace;
     }
     
-    /* Test Buttons (Hidden by default) */
+    /* Test Buttons */
     .test-buttons {
       position: fixed;
       bottom: 20px;
       right: 20px;
       display: none;
-      gap: 10px;
-      z-index: 1000;
     }
     
     .test-buttons.visible {
-      display: flex;
+      display: block;
     }
     
     .test-btn {
+      display: inline-block;
+      margin: 5px;
       padding: 10px 20px;
-      background: rgba(30, 41, 59, 0.9);
+      background-color: #444444;
       color: white;
-      border: 1px solid rgba(148, 163, 184, 0.3);
-      border-radius: 10px;
+      border: 1px solid #666666;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.3s ease;
+      font-size: 0.9em;
     }
     
     .test-btn:hover {
-      background: rgba(51, 65, 85, 0.9);
-      transform: translateY(-2px);
+      background-color: #555555;
     }
     
-    /* Responsive Design */
-    @media (max-width: 1400px) {
+    /* Responsive Design for iPad and smaller */
+    @media (max-width: 1024px) {
       #current-time {
-        font-size: 16rem;
+        font-size: 6em;
       }
       .gregorian-date {
-        font-size: 3rem;
+        font-size: 2.5em;
       }
       .next-prayer {
-        font-size: 2.8rem;
+        font-size: 2em;
       }
-      .prayer-cell {
-        font-size: 1.6rem;
-        padding: 20px 15px;
-      }
-    }
-    
-    @media (max-width: 1280px) {
-      body {
-        padding: 15px;
-      }
-      #current-time {
-        font-size: 14rem;
-      }
-      .gregorian-date {
-        font-size: 2.5rem;
-      }
-      .hijri-date {
-        font-size: 1.6rem;
-      }
-      .next-prayer {
-        font-size: 2.4rem;
-      }
-      .prayer-table {
-        gap: 20px;
-      }
-      .prayer-cell {
-        font-size: 1.4rem;
-        padding: 18px 12px;
+      .prayer-table td {
+        font-size: 1.5em;
+        padding: 15px 10px;
       }
     }
     
@@ -369,256 +204,178 @@
       body {
         padding: 10px;
       }
-      .prayer-table {
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-      }
       #current-time {
-        font-size: 10rem;
+        font-size: 4.5em;
       }
       .gregorian-date {
-        font-size: 2rem;
+        font-size: 2em;
       }
       .hijri-date {
-        font-size: 1.4rem;
+        font-size: 1.4em;
       }
       .next-prayer {
-        font-size: 2rem;
+        font-size: 1.6em;
       }
-      .prayer-cell {
-        font-size: 1.2rem;
-        padding: 15px 10px;
+      .prayer-table {
+        border-spacing: 10px;
+      }
+      .prayer-table td {
+        font-size: 1.2em;
+        padding: 12px 8px;
       }
       #start-button {
-        font-size: 2rem;
+        font-size: 2em;
         padding: 25px 50px;
       }
     }
     
     @media (max-width: 480px) {
-      .prayer-table {
-        grid-template-columns: repeat(3, 1fr);
-      }
       #current-time {
-        font-size: 8rem;
+        font-size: 3.5em;
       }
       .gregorian-date {
-        font-size: 1.6rem;
+        font-size: 1.6em;
       }
       .next-prayer {
-        font-size: 1.6rem;
+        font-size: 1.4em;
       }
-      .prayer-cell {
-        font-size: 1rem;
-        padding: 12px 8px;
-      }
-    }
-    
-    /* Print Styles */
-    @media print {
-      body {
-        background: white;
-        color: black;
-      }
-      #start-screen,
-      .test-buttons {
-        display: none !important;
+      .prayer-table td {
+        font-size: 1em;
+        padding: 10px 6px;
       }
     }
     
-    /* Dark mode support */
-    @media (prefers-color-scheme: light) {
-      /* Keep dark theme for this app */
-    }
-    
-    /* Reduced motion support */
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-      }
-    }
-    
-    /* High contrast support */
-    @media (prefers-contrast: high) {
-      .prayer-cell {
-        border: 2px solid white;
-      }
-      .prayer-cell.current {
-        border: 3px solid yellow;
-      }
+    /* Loading state */
+    .loading {
+      opacity: 0.5;
     }
   </style>
 </head>
 <body>
   <!-- Error Message Display -->
-  <div id="error-message" role="alert" aria-live="polite"></div>
+  <div id="error-message"></div>
   
   <!-- Start Screen -->
-  <div id="start-screen" role="dialog" aria-labelledby="start-title" aria-describedby="start-desc">
-    <button id="start-button" aria-describedby="start-desc">
-      🕌 Klik untuk Mula Operasi
-    </button>
-    <div class="start-message" id="start-desc">
-      Aplikasi ini memerlukan kebenaran untuk memainkan audio azan dan bacaan.<br>
-      Klik butang di atas untuk memulakan aplikasi waktu solat.
+  <div id="start-screen">
+    <div class="inner">
+      <button id="start-button">Klik untuk Mula</button>
+      <div style="margin-top: 20px; font-size: 1.2em; color: #cccccc;">
+        Tekan butang untuk memulakan aplikasi waktu solat
+      </div>
     </div>
   </div>
   
   <!-- Main Content -->
-  <main class="top-section" role="main">
-    <div class="gregorian-date" id="gregorian-date" aria-label="Tarikh Gregorian">
-      Loading date...
+  <div class="main-container">
+    <div class="top-section">
+      <div class="gregorian-date" id="gregorian-date">Loading date...</div>
+      <div class="hijri-date" id="hijri-date">Tarikh Hijri: --/--/----</div>
+      <div id="current-time">--:--:--</div>
+      <div class="next-prayer" id="next-prayer-timer">Seterusnya: --</div>
     </div>
-    <div class="hijri-date" id="hijri-date" aria-label="Tarikh Hijri">
-      Tarikh Hijri: --/--/----
-    </div>
-    <time class="clock" id="current-time" aria-label="Masa semasa">
-      --:--:--
-    </time>
-    <div class="next-prayer" id="next-prayer-timer" aria-label="Waktu solat seterusnya" aria-live="polite">
-      Seterusnya: --
-    </div>
-  </main>
-  
-  <!-- Prayer Times Grid -->
-  <section class="prayer-table" id="prayer-table" role="region" aria-label="Jadual waktu solat">
-    <!-- Prayer cells will be generated by JavaScript -->
-  </section>
-  
-  <!-- Test Buttons (Hidden, can be shown for testing) -->
-  <div class="test-buttons" id="test-buttons">
-    <button class="test-btn" id="button-adhan" aria-label="Test Adhan">🔊 Test Azan</button>
-    <button class="test-btn" id="button-recite" aria-label="Test Recite">📖 Test Bacaan</button>
-    <button class="test-btn" id="toggle-test" aria-label="Hide Test Buttons">❌</button>
+    
+    <!-- Prayer Times Table -->
+    <table class="prayer-table" id="prayer-table">
+      <tr>
+        <!-- Prayer cells will be generated by JavaScript -->
+      </tr>
+    </table>
   </div>
   
-  <!-- Loading indicator -->
-  <div id="loading-indicator" style="display: none;" aria-label="Sedang memuatkan">
-    <div style="text-align: center; font-size: 1.2rem; opacity: 0.7;">
-      🕌 Memuatkan data waktu solat...
-    </div>
+  <!-- Test Buttons -->
+  <div class="test-buttons" id="test-buttons">
+    <button class="test-btn" id="button-adhan">Test Azan</button>
+    <button class="test-btn" id="button-recite">Test Bacaan</button>
+    <button class="test-btn" id="toggle-test">Tutup</button>
   </div>
   
   <!-- Scripts -->
-  <script src="script.js" defer></script>
+  <script src="script.js"></script>
   
   <script>
-    // Enhanced start screen handler with better UX
-    document.addEventListener('DOMContentLoaded', function() {
-      const startButton = document.getElementById('start-button');
-      const startScreen = document.getElementById('start-screen');
-      const loadingIndicator = document.getElementById('loading-indicator');
+    // Simple start screen handler for older browsers
+    function startApp() {
+      var startScreen = document.getElementById('start-screen');
+      var startButton = document.getElementById('start-button');
       
       if (startButton && startScreen) {
-        startButton.addEventListener('click', function() {
-          // Add loading state
-          startButton.textContent = '🕌 Memulakan...';
-          startButton.disabled = true;
-          startButton.style.opacity = '0.7';
-          
-          // Show loading indicator
-          loadingIndicator.style.display = 'block';
-          
-          // Hide start screen with animation
-          setTimeout(() => {
-            startScreen.style.opacity = '0';
-            startScreen.style.transition = 'opacity 0.5s ease';
-            
-            setTimeout(() => {
-              startScreen.style.display = 'none';
-              loadingIndicator.style.display = 'none';
-            }, 500);
-          }, 1000);
-        });
+        startButton.innerHTML = 'Memulakan...';
+        startButton.disabled = true;
+        startButton.style.opacity = '0.7';
+        
+        setTimeout(function() {
+          startScreen.style.display = 'none';
+        }, 1000);
       }
-      
-      // Show test buttons on triple click (for development)
-      let clickCount = 0;
-      document.addEventListener('click', function() {
-        clickCount++;
-        if (clickCount === 3) {
-          const testButtons = document.getElementById('test-buttons');
-          if (testButtons) {
-            testButtons.classList.add('visible');
-          }
-          clickCount = 0;
-        }
-        setTimeout(() => { clickCount = 0; }, 1000);
-      });
-      
-      // Hide test buttons
-      const toggleTest = document.getElementById('toggle-test');
-      if (toggleTest) {
-        toggleTest.addEventListener('click', function() {
-          const testButtons = document.getElementById('test-buttons');
-          if (testButtons) {
-            testButtons.classList.remove('visible');
-          }
-        });
-      }
-      
-      // Prevent right-click context menu for cleaner presentation
-      document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-      });
-      
-      // Handle visibility change (when tab becomes active/inactive)
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'visible') {
-          // Refresh when tab becomes active
-          if (window.prayerApp && window.prayerApp.updateClock) {
-            window.prayerApp.updateClock();
-          }
-        }
-      });
-      
-      // Add keyboard shortcuts
-      document.addEventListener('keydown', function(e) {
-        // F11 for fullscreen
-        if (e.key === 'F11') {
-          e.preventDefault();
-          if (document.fullscreenElement) {
-            document.exitFullscreen();
-          } else {
-            document.documentElement.requestFullscreen();
-          }
+    }
+    
+    // Event listeners for older browser compatibility
+    if (document.addEventListener) {
+      document.addEventListener('DOMContentLoaded', function() {
+        var startButton = document.getElementById('start-button');
+        if (startButton) {
+          startButton.addEventListener('click', startApp);
         }
         
-        // Escape to exit fullscreen
-        if (e.key === 'Escape' && document.fullscreenElement) {
-          document.exitFullscreen();
+        // Show test buttons on triple click
+        var clickCount = 0;
+        document.addEventListener('click', function() {
+          clickCount++;
+          if (clickCount === 3) {
+            var testButtons = document.getElementById('test-buttons');
+            if (testButtons) {
+              testButtons.className = 'test-buttons visible';
+            }
+            clickCount = 0;
+          }
+          setTimeout(function() { clickCount = 0; }, 1000);
+        });
+        
+        // Hide test buttons
+        var toggleTest = document.getElementById('toggle-test');
+        if (toggleTest) {
+          toggleTest.addEventListener('click', function() {
+            var testButtons = document.getElementById('test-buttons');
+            if (testButtons) {
+              testButtons.className = 'test-buttons';
+            }
+          });
+        }
+        
+        // Handle visibility change
+        if (typeof document.hidden !== "undefined") {
+          document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+              if (window.prayerApp && window.prayerApp.updateClock) {
+                window.prayerApp.updateClock();
+              }
+            }
+          });
         }
       });
-    });
+    } else if (document.attachEvent) {
+      // IE8 and older support
+      document.attachEvent('onreadystatechange', function() {
+        if (document.readyState === 'complete') {
+          var startButton = document.getElementById('start-button');
+          if (startButton) {
+            startButton.attachEvent('onclick', startApp);
+          }
+        }
+      });
+    }
     
-    // Service Worker registration for offline functionality (GitHub Pages compatible)
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function() {
-        // Only register if we have a service worker file
-        fetch('/sw.js', { method: 'HEAD' })
-          .then(response => {
-            if (response.ok) {
-              navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                  console.log('SW registered: ', registration);
-                })
-                .catch(registrationError => {
-                  console.log('SW registration failed: ', registrationError);
-                });
-            }
-          })
-          .catch(() => {
-            // Service worker file doesn't exist, that's okay
-            console.log('No service worker found');
-          });
+    // Prevent context menu for cleaner display
+    if (document.addEventListener) {
+      document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        return false;
+      });
+    } else if (document.attachEvent) {
+      document.attachEvent('oncontextmenu', function() {
+        return false;
       });
     }
   </script>
 </body>
 </html>
-
-
