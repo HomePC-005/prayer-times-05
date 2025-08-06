@@ -6,239 +6,164 @@
   <title>Jam Waktu Solat</title>
   
   <style>
-  /* Simple reset for older browsers */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body {
-    height: 100%;
-    width: 100%;
-    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
-    background-color: #000000; /* Pure black background */
-    color: #e0e0e0; /* Light gray for default text */
-    overflow: hidden;
+    html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  background-color: #0a0a0a; /* deeper black */
+  color: #eaeaea;
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
 }
 
 body {
-    display: table;
-    width: 100%;
-    height: 100%;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Start Screen */
-#start-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #000000; /* Match new background */
-    z-index: 9999;
-    display: table;
-}
-
-#start-screen .inner {
-    display: table-cell;
-    vertical-align: middle;
-    text-align: center;
-}
-
-#start-button {
-    padding: 30px 60px;
-    font-size: 2.5em;
-    font-weight: bold;
-    background-color: #007bff; /* A nice, bright blue */
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-#start-button:hover {
-    background-color: #0056b3;
-}
-
-/* Error Message */
-#error-message {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background-color: #cc0000;
-    color: white;
-    padding: 15px 25px;
-    border-radius: 5px;
-    font-size: 1.1em;
-    z-index: 10000;
-    display: none;
-    max-width: 400px;
-}
-
-/* Main Container */
+/* Main container optimized for 1080p */
 .main-container {
-    display: table-cell;
-    vertical-align: middle;
-    padding: 20px;
+  width: 100%;
+  max-width: 1920px;
+  padding: 40px;
+  text-align: center;
 }
 
-/* Top Section */
-.top-section {
-    margin-bottom: 40px;
-}
-
+/* Date styling */
 .gregorian-date {
-    font-size: 3rem;
-    margin-bottom: 5px;
-    text-transform: uppercase;
-    color: #aaaaaa; /* Softer gray for less emphasis */
-    font-weight: 600;
-    letter-spacing: 2px;
+  font-size: 2.5rem;
+  color: #bbbbbb;
+  margin-bottom: 0.5rem;
 }
 
 .hijri-date {
-    font-size: 2rem;
-    margin-bottom: 20px;
-    color: #888888; /* Even softer gray */
+  font-size: 1.8rem;
+  color: #888888;
+  margin-bottom: 2rem;
 }
 
+/* Clock styling */
 #current-time {
-    font-size: 18rem; /* Dramatically larger font size for the clock */
-    font-family: "Courier New", monospace;
-    font-weight: 700;
-    color: #ffffff; /* Pure white for max contrast */
-    margin: 10px 0;
-    line-height: 1; /* Tighter line height */
-    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2); /* Subtle glow effect */
+  font-size: 18rem;
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+  margin-bottom: 2rem;
+  line-height: 1;
 }
 
+/* Next prayer info */
 .next-prayer {
-    font-size: 3.5rem;
-    color: #00ffff; /* Vibrant cyan for high contrast accent */
-    margin-top: 20px;
-    font-weight: bold;
+  font-size: 3rem;
+  color: #00ffff;
+  font-weight: bold;
+  margin-bottom: 3rem;
 }
 
-/* Prayer Table */
+/* Table layout */
 .prayer-table {
-    width: 100%;
-    max-width: 1400px; /* Wider for 1080p */
-    margin: 0 auto;
-    border-collapse: separate;
-    border-spacing: 20px;
+  width: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+  border-collapse: separate;
+  border-spacing: 20px;
 }
 
 .prayer-table td {
-    background-color: transparent; /* Cleaner look */
-    padding: 25px 15px;
-    text-align: center;
-    border-radius: 12px;
-    font-size: 2rem;
-    border: 2px solid #444444; /* Subtle border */
-    width: 16.66%;
-    transition: all 0.3s ease;
-}
-
-.prayer-table td:hover {
-    border-color: #00ffff; /* Highlight on hover */
-    background-color: #111111;
+  background-color: #111;
+  padding: 30px 20px;
+  font-size: 2.2rem;
+  font-weight: 500;
+  border: 2px solid #333;
+  border-radius: 15px;
+  transition: all 0.3s ease;
 }
 
 .prayer-table td.current {
-    background-color: #007bff; /* Strong blue highlight */
-    color: #ffffff; /* White text for contrast on blue */
-    font-weight: bold;
-    border-color: #ffffff; /* White border to make it pop */
-    transform: scale(1.05); /* Slightly enlarge the current prayer */
-    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  border-color: #ffffff;
+  box-shadow: 0 0 20px rgba(0, 123, 255, 0.7);
 }
 
 .prayer-name {
-    font-weight: bold;
-    margin-bottom: 10px;
-    font-size: 1em; /* Relative to the parent td */
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
 }
 
 .prayer-time {
-    font-size: 1.3em; /* Make the time more prominent */
-    font-family: "Courier New", monospace;
+  font-family: 'Courier New', monospace;
+  font-size: 1.5em;
 }
 
-/* Test Buttons */
+/* Start screen */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+#start-button {
+  padding: 30px 60px;
+  font-size: 2.5rem;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+#start-button:hover {
+  background-color: #0056b3;
+}
+
+#error-message {
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  background-color: #d00;
+  color: #fff;
+  padding: 15px 30px;
+  border-radius: 5px;
+  font-size: 1.2rem;
+  z-index: 10000;
+  display: none;
+}
+
+/* Optional: hide test buttons unless triple clicked */
 .test-buttons {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    display: none;
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
 }
 
 .test-buttons.visible {
-    display: block;
+  display: flex;
+  gap: 10px;
 }
 
 .test-btn {
-    display: inline-block;
-    margin: 5px;
-    padding: 10px 20px;
-    background-color: #333333;
-    color: white;
-    border: 1px solid #666666;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
+  background: #222;
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border: 1px solid #555;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
-.test-btn:hover {
-    background-color: #555555;
-}
-
-/* Responsive adjustments can be kept for flexibility */
-@media (max-width: 1400px) {
-    #current-time {
-        font-size: 14rem;
-    }
-    .prayer-table {
-        max-width: 1100px;
-    }
-}
-
-@media (max-width: 1024px) {
-    #current-time {
-        font-size: 10rem;
-    }
-    .gregorian-date {
-        font-size: 2.5rem;
-    }
-    .next-prayer {
-        font-size: 2.5rem;
-    }
-    .prayer-table td {
-        font-size: 1.5rem;
-        padding: 15px 10px;
-    }
-}
-
-@media (max-width: 768px) {
-    #current-time {
-        font-size: 6rem;
-    }
-    .gregorian-date {
-        font-size: 2rem;
-    }
-    .hijri-date {
-        font-size: 1.4rem;
-    }
-    .next-prayer {
-        font-size: 2rem;
-    }
-    .prayer-table td {
-        font-size: 1.2rem;
-        padding: 12px 8px;
-    }
-}
   </style>
 </head>
 <body>
@@ -369,4 +294,5 @@ body {
   </script>
 </body>
 </html>
+
 
