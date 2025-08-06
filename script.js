@@ -6,8 +6,9 @@
 
 class PrayerTimeApp {
     constructor() {
-        // Constants - Updated to match CSV format
+        // Constants - Updated to match CSV format (Imsak included for data but not display)
         this.PRAYER_NAMES = ["Imsak", "Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"];
+        this.DISPLAY_PRAYER_NAMES = ["Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"]; // For table display only
         this.AUDIO_NAMES = ["imsak", "subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"];
         this.RECITATION_OFFSET_MIN = 10;
         this.UPDATE_INTERVAL = 1000;
@@ -67,10 +68,12 @@ class PrayerTimeApp {
     }
 
     /**
-     * Preload all audio files for better performance
+     * Preload all audio files for better performance (excluding Imsak)
      */
     async preloadAllAudio() {
-        const loadPromises = this.AUDIO_NAMES.flatMap(name => [
+        // Only preload audio for actual prayers, not Imsak
+        const audioNames = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"];
+        const loadPromises = audioNames.flatMap(name => [
             this.preloadAudio(`${name}_recite.mp3`),
             this.preloadAudio(`${name}_adhan.mp3`)
         ]);
@@ -320,31 +323,40 @@ class PrayerTimeApp {
     }
 
     /**
-     * Populate prayer table with current data
+     * Populate prayer table with current data (excluding Imsak)
      */
     populatePrayerTable() {
         const container = document.getElementById("prayer-table");
         if (!container) return;
 
-        container.innerHTML = "";
+        // Clear existing content
+        const existingRow = container.querySelector("tr");
+        if (existingRow) {
+            existingRow.innerHTML = "";
+        } else {
+            const newRow = document.createElement("tr");
+            container.appendChild(newRow);
+        }
 
-        this.PRAYER_NAMES.forEach(name => {
+        const row = container.querySelector("tr");
+
+        // Only display prayers excluding Imsak
+        this.DISPLAY_PRAYER_NAMES.forEach(name => {
             const time = this.state.todayPrayerTimes[name];
             if (!time) return;
 
-            const cell = document.createElement("div");
-            cell.classList.add("prayer-cell");
+            const cell = document.createElement("td");
             cell.setAttribute("data-prayer", name);
             cell.innerHTML = `
                 <div class="prayer-name">${name}</div>
                 <div class="prayer-time">${time}</div>
             `;
-            container.appendChild(cell);
+            row.appendChild(cell);
         });
     }
 
     /**
-     * Update prayer highlight with error handling
+     * Update prayer highlight with error handling (only for displayed prayers)
      */
     checkAndUpdatePrayerHighlight(now) {
         if (!this.hasPrayerTimes()) return;
@@ -352,6 +364,7 @@ class PrayerTimeApp {
         let currentPrayer = null;
         const nowMs = now.getTime();
 
+        // Check all prayers including Imsak for current prayer logic
         for (const name of this.PRAYER_NAMES) {
             const timeStr = this.state.todayPrayerTimes[name];
             if (!timeStr) continue;
@@ -372,13 +385,21 @@ class PrayerTimeApp {
     }
 
     /**
-     * Update visual highlight for current prayer
+     * Update visual highlight for current prayer (only for displayed prayers)
      */
     updatePrayerHighlight(currentPrayer) {
-        const cells = document.querySelectorAll(".prayer-cell");
+        const cells = document.querySelectorAll("td[data-prayer]");
         cells.forEach(cell => {
-            const isCurrentPrayer = cell.getAttribute("data-prayer") === currentPrayer;
-            cell.classList.toggle("current", isCurrentPrayer);
+            const prayerName = cell.getAttribute("data-prayer");
+            const isCurrentPrayer = prayerName === currentPrayer;
+            
+            // Remove existing classes
+            cell.className = cell.className.replace(/\bcurrent\b/g, '').trim();
+            
+            // Add current class if this is the current prayer and it's displayed
+            if (isCurrentPrayer && this.DISPLAY_PRAYER_NAMES.includes(currentPrayer)) {
+                cell.className += (cell.className ? ' ' : '') + 'current';
+            }
         });
     }
 
