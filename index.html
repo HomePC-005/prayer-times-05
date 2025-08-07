@@ -280,19 +280,10 @@ body {
       });
     }
     
-    // Prevent context menu for cleaner display
-    if (document.addEventListener) {
-      document.addEventListener('contextmenu', function(e) {
-        e.preventDefault();
-        return false;
-      });
-    } else if (document.attachEvent) {
-      document.attachEvent('oncontextmenu', function() {
-        return false;
-      });
-    }
+
   </script>
 </body>
 </html>
+
 
 
