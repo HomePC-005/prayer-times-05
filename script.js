@@ -1,7 +1,10 @@
 /**
  * Enhanced Prayer Time Web Application
  * Improvements: Better error handling, performance optimization, code organization,
- * proper state management, and enhanced user experience
+ * proper state management, enhanced user experience, warm color theming, and TV-friendly features
+ * 
+ * Version: 2.0
+ * Compatible with JAKIM CSV format
  */
 
 class PrayerTimeApp {
@@ -9,7 +12,7 @@ class PrayerTimeApp {
         // Constants - Updated to match CSV format (Imsak included for data but not display)
         this.PRAYER_NAMES = ["Imsak", "Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"];
         this.DISPLAY_PRAYER_NAMES = ["Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"]; // For table display only
-        this.AUDIO_NAMES = ["imsak", "subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"];
+        this.AUDIO_NAMES = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"];
         this.RECITATION_OFFSET_MIN = 10;
         this.UPDATE_INTERVAL = 1000;
         this.AUDIO_CLEAR_INTERVAL = 60 * 1000;
@@ -27,7 +30,11 @@ class PrayerTimeApp {
             csvDataRaw: "",
             isInitialized: false,
             clockInterval: null,
-            audioInterval: null
+            audioInterval: null,
+            performanceStats: {
+                updateCount: 0,
+                totalTime: 0
+            }
         };
 
         // Localization
@@ -45,8 +52,6 @@ class PrayerTimeApp {
                 noDataFound: "Tiada data waktu solat dijumpai untuk tarikh ini"
             }
         };
-
-        this.init();
     }
 
     /**
@@ -54,16 +59,39 @@ class PrayerTimeApp {
      */
     async init() {
         try {
+            console.log("Initializing Prayer Time App...");
+            
+            // Add performance monitoring
+            this.addPerformanceLogging();
+            
+            // Monitor connection status
+            this.monitorConnection();
+            
+            // Load and validate data
             await this.preloadAllAudio();
             await this.loadCSVData();
+            
+            // Setup UI
             this.setupEventListeners();
             this.startClockUpdates();
             this.startAudioClearInterval();
+            
             this.state.isInitialized = true;
             console.log("Prayer Time App initialized successfully");
+            
+            // Remove loading state from UI
+            const loadingElements = document.querySelectorAll('.loading');
+            loadingElements.forEach(el => el.classList.remove('loading'));
+            
         } catch (error) {
             console.error("Failed to initialize Prayer Time App:", error);
-            this.showError("Gagal memulakan aplikasi. Sila muat semula halaman.");
+            this.showError("Ralat memulakan aplikasi. Sila semak sambungan internet dan muat semula halaman.", false);
+            
+            // Retry initialization after 5 seconds
+            setTimeout(() => {
+                console.log("Retrying initialization...");
+                this.init();
+            }, 5000);
         }
     }
 
@@ -115,31 +143,129 @@ class PrayerTimeApp {
     }
 
     /**
-     * Load CSV data with better error handling
+     * Enhanced CSV validation specific to JAKIM format
+     */
+    validateCSVFormat(csvText) {
+        const lines = csvText.trim().split("\n");
+        if (lines.length < 2) {
+            throw new Error("CSV file must have at least header and one data row");
+        }
+        
+        const headers = lines[0].split(",").map(h => h.trim());
+        console.log("CSV Headers found:", headers);
+        
+        // Check for required columns based on actual JAKIM CSV
+        const expectedHeaders = ["Date Masihi", "Date Hijri", "Day", "Imsak", "Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"];
+        const missingHeaders = expectedHeaders.filter(expected => 
+            !headers.includes(expected)
+        );
+        
+        if (missingHeaders.length > 0) {
+            throw new Error(`Missing required CSV columns: ${missingHeaders.join(", ")}`);
+        }
+        
+        // Validate first data row format
+        if (lines.length > 1) {
+            const firstRow = lines[1].split(",").map(cell => cell.trim());
+            
+            // Check date format (should match: "1-Jan-25")
+            const datePattern = /^\d{1,2}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)-\d{2}$/;
+            if (!datePattern.test(firstRow[0])) {
+                throw new Error(`Invalid date format in CSV. Expected format: "1-Jan-25", got: "${firstRow[0]}"`);
+            }
+            
+            // Check time format (should match: "5:59 AM")
+            const timePattern = /^\d{1,2}:\d{2} (AM|PM)$/;
+            const timeColumns = [3, 4, 5, 6, 7, 8, 9]; // Imsak through Isyak
+            
+            for (let i of timeColumns) {
+                if (i < firstRow.length && !timePattern.test(firstRow[i])) {
+                    console.warn(`Potential time format issue in column ${headers[i]}: "${firstRow[i]}"`);
+                }
+            }
+        }
+        
+        console.log("CSV format validation passed");
+        return true;
+    }
+
+    /**
+     * Enhanced CSV data loading with validation and debugging
      */
     async loadCSVData() {
         try {
+            console.log("Loading CSV data from prayer_times.csv...");
             const response = await fetch("prayer_times.csv");
+            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             this.state.csvDataRaw = await response.text();
+            
             if (!this.state.csvDataRaw.trim()) {
                 throw new Error("CSV file is empty");
             }
 
-            const today = new Date();
-            this.loadPrayerTimesForDate(today);
+            // Validate CSV format
+            this.validateCSVFormat(this.state.csvDataRaw);
+            
+            // Debug CSV data
+            this.debugCSVData();
+            
+            // Load today's data
+            const today = this.getCurrentLocalTime();
+            const success = this.loadPrayerTimesForDate(today);
+            
+            if (!success) {
+                // Try next few days if today's data not found
+                console.log("Today's data not found, checking next few days...");
+                for (let i = 1; i <= 7; i++) {
+                    const futureDate = new Date(today);
+                    futureDate.setDate(today.getDate() + i);
+                    if (this.loadPrayerTimesForDate(futureDate)) {
+                        console.log(`Using data for: ${this.formatDate(futureDate)}`);
+                        break;
+                    }
+                }
+            }
+            
             console.log("CSV data loaded successfully");
         } catch (error) {
             console.error("Failed to load CSV data:", error);
-            throw new Error(this.locale.messages.csvLoadError);
+            this.showError(`Ralat memuatkan data: ${error.message}`);
+            throw error;
         }
     }
 
     /**
-     * Parse and load prayer times for a specific date
+     * Enhanced date formatting that matches JAKIM CSV exactly
+     */
+    formatDate(date) {
+        const day = date.getDate(); // No padding needed for CSV format
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", 
+                           "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        const month = monthNames[date.getMonth()];
+        const year = date.getFullYear().toString().slice(-2);
+        return `${day}-${month}-${year}`;
+    }
+
+    /**
+     * Get current time in Malaysia timezone (UTC+8)
+     */
+    getCurrentLocalTime() {
+        const now = new Date();
+        
+        // Ensure we're working with Malaysia timezone (UTC+8)
+        const malaysiaOffset = 8 * 60; // Malaysia is UTC+8
+        const localOffset = now.getTimezoneOffset();
+        const malaysiaTime = new Date(now.getTime() + (localOffset + malaysiaOffset) * 60000);
+        
+        return malaysiaTime;
+    }
+
+    /**
+     * Enhanced prayer times loading with better error handling
      */
     loadPrayerTimesForDate(date) {
         if (!this.state.csvDataRaw) {
@@ -149,30 +275,22 @@ class PrayerTimeApp {
 
         const lines = this.state.csvDataRaw.trim().split("\n");
         if (lines.length < 2) {
-            console.error("Invalid CSV format");
+            console.error("Invalid CSV format - no data rows");
             return false;
         }
 
         const headers = lines[0].split(",").map(h => h.trim());
         const dateKey = this.formatDate(date);
+        
+        console.log(`Looking for date: ${dateKey}`);
 
-        // Find the "Date Masihi" column index
-        const dateColumnIndex = headers.findIndex(header => 
-            header.toLowerCase().includes('date masihi') || 
-            header.toLowerCase().includes('masihi') ||
-            header === 'Date Masihi'
-        );
-
-        if (dateColumnIndex === -1) {
-            console.error("Could not find 'Date Masihi' column in CSV");
-            return false;
-        }
-
+        // Find the exact row for this date
         for (let i = 1; i < lines.length; i++) {
             const row = lines[i].split(",").map(cell => cell.trim());
             
-            // Compare with the date in the correct column
-            if (row[dateColumnIndex] === dateKey) {
+            // Check if this row matches our date
+            if (row[0] === dateKey) {
+                // Build prayer times object
                 this.state.todayPrayerTimes = {};
                 headers.forEach((header, idx) => {
                     if (idx < row.length) {
@@ -180,20 +298,141 @@ class PrayerTimeApp {
                     }
                 });
 
+                // Extract specific fields
                 this.state.currentHijriDate = this.state.todayPrayerTimes["Date Hijri"] || "";
                 this.state.currentDateKey = dateKey;
+                
+                // Log loaded times for debugging
+                console.log("Prayer times loaded for:", dateKey);
+                console.log("Hijri date:", this.state.currentHijriDate);
+                console.log("Day:", this.state.todayPrayerTimes["Day"]);
+                
+                // Log all prayer times
+                this.PRAYER_NAMES.forEach(prayer => {
+                    console.log(`${prayer}: ${this.state.todayPrayerTimes[prayer]}`);
+                });
                 
                 this.updateHijriDateDisplay();
                 this.populatePrayerTable();
                 
-                console.log("Prayer times loaded for:", dateKey, this.state.todayPrayerTimes);
                 return true;
             }
         }
 
-        console.warn("No prayer times found for date:", dateKey);
-        this.showError(this.locale.messages.noDataFound);
+        console.warn(`No prayer times found for date: ${dateKey}`);
+        
+        // Show available dates for debugging
+        const availableDates = lines.slice(1, 6).map(line => line.split(",")[0]);
+        console.log("Available dates (first 5):", availableDates);
+        
+        this.showError(`Tiada data waktu solat untuk ${dateKey}`);
         return false;
+    }
+
+    /**
+     * Format long date for display
+     */
+    formatLongDate(date) {
+        const dayName = this.locale.days[date.getDay()];
+        const dayNum = String(date.getDate()).padStart(2, '0');
+        const monthName = this.locale.months[date.getMonth()];
+        const year = date.getFullYear();
+        return `${dayName}, ${dayNum} ${monthName} ${year}`;
+    }
+
+    /**
+     * Enhanced time parsing with better error messages
+     */
+    parseTime(timeStr) {
+        if (!timeStr || typeof timeStr !== 'string') {
+            throw new Error(`Invalid time string: ${timeStr}`);
+        }
+
+        const trimmed = timeStr.trim();
+        const parts = trimmed.split(" ");
+        
+        if (parts.length !== 2) {
+            throw new Error(`Invalid time format: "${timeStr}". Expected format: "5:59 AM"`);
+        }
+
+        const [time, modifier] = parts;
+        const timeParts = time.split(":");
+        
+        if (timeParts.length !== 2) {
+            throw new Error(`Invalid time format: "${timeStr}". Time part should be "HH:MM"`);
+        }
+
+        const [hourStr, minuteStr] = timeParts;
+        const hour = parseInt(hourStr, 10);
+        const minute = parseInt(minuteStr, 10);
+        
+        if (isNaN(hour) || isNaN(minute)) {
+            throw new Error(`Invalid time values: "${timeStr}". Hour: ${hourStr}, Minute: ${minuteStr}`);
+        }
+        
+        if (hour < 1 || hour > 12) {
+            throw new Error(`Invalid hour in 12-hour format: ${hour}`);
+        }
+        
+        if (minute < 0 || minute > 59) {
+            throw new Error(`Invalid minute: ${minute}`);
+        }
+        
+        if (modifier !== "AM" && modifier !== "PM") {
+            throw new Error(`Invalid time modifier: "${modifier}". Expected AM or PM`);
+        }
+
+        // Convert to 24-hour format
+        let hour24 = hour;
+        if (modifier === "PM" && hour !== 12) {
+            hour24 += 12;
+        } else if (modifier === "AM" && hour === 12) {
+            hour24 = 0;
+        }
+        
+        return { hour: hour24, minute };
+    }
+
+    /**
+     * Get time in milliseconds for today
+     */
+    getTimeInMs(hour, minute) {
+        const now = this.getCurrentLocalTime();
+        const time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
+        return time.getTime();
+    }
+
+    /**
+     * Populate prayer table with current data (excluding Imsak)
+     */
+    populatePrayerTable() {
+        const container = document.getElementById("prayer-table");
+        if (!container) return;
+
+        // Clear existing content
+        const existingRow = container.querySelector("tr");
+        if (existingRow) {
+            existingRow.innerHTML = "";
+        } else {
+            const newRow = document.createElement("tr");
+            container.appendChild(newRow);
+        }
+
+        const row = container.querySelector("tr");
+
+        // Only display prayers excluding Imsak
+        this.DISPLAY_PRAYER_NAMES.forEach(name => {
+            const time = this.state.todayPrayerTimes[name];
+            if (!time) return;
+
+            const cell = document.createElement("td");
+            cell.setAttribute("data-prayer", name);
+            cell.innerHTML = `
+                <div class="prayer-name">${name}</div>
+                <div class="prayer-time">${time}</div>
+            `;
+            row.appendChild(cell);
+        });
     }
 
     /**
@@ -202,7 +441,7 @@ class PrayerTimeApp {
     updateClock() {
         if (!this.state.isInitialized) return;
 
-        const now = new Date();
+        const now = this.getCurrentLocalTime();
         
         // Check for date change (only once per minute to optimize performance)
         if (now.getSeconds() === 0) {
@@ -250,113 +489,22 @@ class PrayerTimeApp {
     }
 
     /**
-     * Update Hijri date display
+     * Enhanced Hijri date display with day name
      */
     updateHijriDateDisplay() {
         const hijriElement = document.getElementById("hijri-date");
         if (hijriElement && this.state.currentHijriDate) {
-            hijriElement.textContent = this.locale.messages.hijriDateFormat
-                .replace('{date}', this.state.currentHijriDate);
+            const dayName = this.state.todayPrayerTimes["Day"] || "";
+            const hijriText = dayName ? 
+                `${dayName} - ${this.state.currentHijriDate}` : 
+                this.state.currentHijriDate;
+                
+            hijriElement.textContent = `Tarikh Hijri: ${hijriText}`;
         }
     }
 
     /**
-     * Format date for CSV lookup (optimized)
-     */
-    formatDate(date) {
-        const day = date.getDate();
-        const month = this.locale.monthsEn[date.getMonth()];
-        const year = date.getFullYear().toString().slice(-2);
-        return `${day}-${month}-${year}`;
-    }
-
-    /**
-     * Format long date for display
-     */
-    formatLongDate(date) {
-        const dayName = this.locale.days[date.getDay()];
-        const dayNum = String(date.getDate()).padStart(2, '0');
-        const monthName = this.locale.months[date.getMonth()];
-        const year = date.getFullYear();
-        return `${dayName}, ${dayNum} ${monthName} ${year}`;
-    }
-
-    /**
-     * Parse time string to hour and minute
-     */
-    parseTime(timeStr) {
-        if (!timeStr || typeof timeStr !== 'string') {
-            throw new Error(`Invalid time string: ${timeStr}`);
-        }
-
-        const parts = timeStr.trim().split(" ");
-        if (parts.length !== 2) {
-            throw new Error(`Invalid time format: ${timeStr}`);
-        }
-
-        const [time, modifier] = parts;
-        const timeParts = time.split(":");
-        
-        if (timeParts.length !== 2) {
-            throw new Error(`Invalid time format: ${timeStr}`);
-        }
-
-        let [hour, minute] = timeParts.map(Number);
-        
-        if (isNaN(hour) || isNaN(minute)) {
-            throw new Error(`Invalid time values: ${timeStr}`);
-        }
-
-        if (modifier === "PM" && hour !== 12) hour += 12;
-        if (modifier === "AM" && hour === 12) hour = 0;
-        
-        return { hour, minute };
-    }
-
-    /**
-     * Get time in milliseconds for today
-     */
-    getTimeInMs(hour, minute) {
-        const now = new Date();
-        const time = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute, 0);
-        return time.getTime();
-    }
-
-    /**
-     * Populate prayer table with current data (excluding Imsak)
-     */
-    populatePrayerTable() {
-        const container = document.getElementById("prayer-table");
-        if (!container) return;
-
-        // Clear existing content
-        const existingRow = container.querySelector("tr");
-        if (existingRow) {
-            existingRow.innerHTML = "";
-        } else {
-            const newRow = document.createElement("tr");
-            container.appendChild(newRow);
-        }
-
-        const row = container.querySelector("tr");
-
-        // Only display prayers excluding Imsak
-        this.DISPLAY_PRAYER_NAMES.forEach(name => {
-            const time = this.state.todayPrayerTimes[name];
-            if (!time) return;
-
-            const cell = document.createElement("td");
-            cell.setAttribute("data-prayer", name);
-            cell.innerHTML = `
-                <div class="prayer-name">${name}</div>
-                <div class="prayer-time">${time}</div>
-            `;
-            row.appendChild(cell);
-        });
-    }
-
-    /**
-     * Update prayer highlight with error handling (only for displayed prayers)
+     * Update prayer highlight with visual states (including passed prayers)
      */
     checkAndUpdatePrayerHighlight(now) {
         if (!this.hasPrayerTimes()) return;
@@ -381,24 +529,36 @@ class PrayerTimeApp {
             }
         }
 
-        this.updatePrayerHighlight(currentPrayer);
+        this.updatePrayerHighlight(currentPrayer, now);
     }
 
     /**
-     * Update visual highlight for current prayer (only for displayed prayers)
+     * Enhanced visual highlight with passed prayer states
      */
-    updatePrayerHighlight(currentPrayer) {
+    updatePrayerHighlight(currentPrayer, now) {
         const cells = document.querySelectorAll("td[data-prayer]");
+        const nowMs = now.getTime();
+        
         cells.forEach(cell => {
             const prayerName = cell.getAttribute("data-prayer");
-            const isCurrentPrayer = prayerName === currentPrayer;
+            const timeStr = this.state.todayPrayerTimes[prayerName];
             
             // Remove existing classes
-            cell.className = cell.className.replace(/\bcurrent\b/g, '').trim();
+            cell.className = cell.className.replace(/\b(current|passed)\b/g, '').trim();
             
-            // Add current class if this is the current prayer and it's displayed
-            if (isCurrentPrayer && this.DISPLAY_PRAYER_NAMES.includes(currentPrayer)) {
-                cell.className += (cell.className ? ' ' : '') + 'current';
+            if (timeStr) {
+                try {
+                    const { hour, minute } = this.parseTime(timeStr);
+                    const timeMs = this.getTimeInMs(hour, minute);
+                    
+                    if (prayerName === currentPrayer && this.DISPLAY_PRAYER_NAMES.includes(currentPrayer)) {
+                        cell.classList.add('current');
+                    } else if (nowMs > timeMs + (5 * 60 * 1000)) { // 5 minutes grace
+                        cell.classList.add('passed');
+                    }
+                } catch (error) {
+                    console.warn(`Error parsing time for ${prayerName}:`, error);
+                }
             }
         });
     }
@@ -632,6 +792,87 @@ class PrayerTimeApp {
     }
 
     /**
+     * Add performance monitoring
+     */
+    addPerformanceLogging() {
+        const originalUpdateClock = this.updateClock.bind(this);
+        
+        this.updateClock = function() {
+            const startTime = performance.now();
+            originalUpdateClock();
+            const endTime = performance.now();
+            
+            this.state.performanceStats.updateCount++;
+            this.state.performanceStats.totalTime += (endTime - startTime);
+            
+            // Log performance every 60 updates (1 minute)
+            if (this.state.performanceStats.updateCount % 60 === 0) {
+                const avgTime = this.state.performanceStats.totalTime / this.state.performanceStats.updateCount;
+                console.log(`Performance: ${this.state.performanceStats.updateCount} updates, avg ${avgTime.toFixed(2)}ms per update`);
+            }
+        }.bind(this);
+    }
+
+    /**
+     * Add connection status monitoring
+     */
+    monitorConnection() {
+        const updateConnectionStatus = () => {
+            const statusBar = document.querySelector('.status-bar');
+            if (statusBar) {
+                if (navigator.onLine) {
+                    statusBar.classList.add('connected');
+                    statusBar.innerHTML = '<span>● Data JAKIM Rasmi</span>';
+                } else {
+                    statusBar.classList.remove('connected');
+                    statusBar.innerHTML = '<span class="status-offline">● Offline</span>';
+                }
+            }
+        };
+        
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Initial check
+        updateConnectionStatus();
+    }
+
+    /**
+     * Add debugging method to check CSV data
+     */
+    debugCSVData() {
+        if (!this.state.csvDataRaw) {
+            console.log("No CSV data loaded");
+            return;
+        }
+        
+        const lines = this.state.csvDataRaw.trim().split("\n");
+        console.log("=== CSV Debug Info ===");
+        console.log(`Total lines: ${lines.length}`);
+        console.log("Headers:", lines[0]);
+        console.log("First data row:", lines[1]);
+        console.log("Last data row:", lines[lines.length - 1]);
+        
+        // Check date range
+        if (lines.length > 1) {
+            const firstDate = lines[1].split(",")[0];
+            const lastDate = lines[lines.length - 1].split(",")[0];
+            console.log(`Date range: ${firstDate} to ${lastDate}`);
+        }
+        
+        // Current lookup
+        const today = this.getCurrentLocalTime();
+        const todayKey = this.formatDate(today);
+        console.log(`Today's lookup key: ${todayKey}`);
+        
+        const foundRow = lines.find(line => line.startsWith(todayKey));
+        console.log("Today's row found:", !!foundRow);
+        if (foundRow) {
+            console.log("Today's data:", foundRow);
+        }
+    }
+
+    /**
      * Check if prayer times are loaded
      */
     hasPrayerTimes() {
@@ -639,30 +880,162 @@ class PrayerTimeApp {
     }
 
     /**
-     * Show error message to user
+     * Enhanced error handling with user-friendly messages
      */
-    showError(message) {
+    showError(message, autoHide = true) {
         console.error(message);
-        // You can implement a toast notification or error display here
         const errorElement = document.getElementById("error-message");
         if (errorElement) {
             errorElement.textContent = message;
             errorElement.style.display = "block";
-            setTimeout(() => {
-                errorElement.style.display = "none";
-            }, 5000);
+            
+            if (autoHide) {
+                setTimeout(() => {
+                    errorElement.style.display = "none";
+                }, 5000);
+            }
+        }
+        
+        // Also show in console for debugging
+        console.error("Prayer App Error:", message);
+    }
+
+    /**
+     * Add method to manually refresh data
+     */
+    async refreshData() {
+        try {
+            console.log("Manually refreshing prayer data...");
+            await this.loadCSVData();
+            this.updateClock(); // Force immediate update
+            console.log("Data refreshed successfully");
+        } catch (error) {
+            console.error("Failed to refresh data:", error);
+            this.showError("Gagal menyegarkan data");
         }
     }
 
     /**
-     * Cleanup method
+     * Get debug information for troubleshooting
+     */
+    getDebugInfo() {
+        return {
+            isInitialized: this.state.isInitialized,
+            currentDate: this.state.currentDateKey,
+            nextPrayer: this.state.nextPrayer,
+            prayerTimesCount: Object.keys(this.state.todayPrayerTimes).length,
+            audioFilesLoaded: this.state.audioCache.size,
+            audioPlayed: Array.from(this.state.audioPlayed),
+            hijriDate: this.state.currentHijriDate,
+            performanceStats: this.state.performanceStats,
+            csvDataLength: this.state.csvDataRaw.length
+        };
+    }
+
+    /**
+     * Manual audio test methods for debugging
+     */
+    testAudio(prayerName, type = 'adhan') {
+        if (!this.AUDIO_NAMES.includes(prayerName.toLowerCase())) {
+            console.error(`Invalid prayer name: ${prayerName}`);
+            return;
+        }
+        
+        if (!['adhan', 'recite'].includes(type)) {
+            console.error(`Invalid audio type: ${type}. Use 'adhan' or 'recite'`);
+            return;
+        }
+        
+        const filename = `${prayerName.toLowerCase()}_${type}.mp3`;
+        console.log(`Testing audio: ${filename}`);
+        this.playAudio(filename);
+    }
+
+    /**
+     * Force next prayer for testing
+     */
+    forceNextPrayer(prayerName) {
+        if (!this.PRAYER_NAMES.includes(prayerName)) {
+            console.error(`Invalid prayer name: ${prayerName}`);
+            return;
+        }
+        
+        const timeStr = this.state.todayPrayerTimes[prayerName];
+        if (!timeStr) {
+            console.error(`No time found for prayer: ${prayerName}`);
+            return;
+        }
+        
+        try {
+            const { hour, minute } = this.parseTime(timeStr);
+            const timeMs = this.getTimeInMs(hour, minute);
+            
+            this.state.nextPrayer = prayerName;
+            this.state.nextTimeMs = timeMs;
+            
+            console.log(`Forced next prayer to: ${prayerName} at ${timeStr}`);
+            this.updateNextPrayerTimer(this.getCurrentLocalTime());
+        } catch (error) {
+            console.error(`Error setting next prayer:`, error);
+        }
+    }
+
+    /**
+     * Get prayer times for any date (for debugging)
+     */
+    getPrayerTimesForDate(dateStr) {
+        if (!this.state.csvDataRaw) {
+            console.log("No CSV data loaded");
+            return null;
+        }
+        
+        const lines = this.state.csvDataRaw.trim().split("\n");
+        const headers = lines[0].split(",").map(h => h.trim());
+        
+        for (let i = 1; i < lines.length; i++) {
+            const row = lines[i].split(",").map(cell => cell.trim());
+            
+            if (row[0] === dateStr) {
+                const prayerTimes = {};
+                headers.forEach((header, idx) => {
+                    if (idx < row.length) {
+                        prayerTimes[header] = row[idx];
+                    }
+                });
+                return prayerTimes;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * List available dates in CSV (for debugging)
+     */
+    getAvailableDates(limit = 10) {
+        if (!this.state.csvDataRaw) {
+            console.log("No CSV data loaded");
+            return [];
+        }
+        
+        const lines = this.state.csvDataRaw.trim().split("\n");
+        return lines.slice(1, limit + 1).map(line => line.split(",")[0]);
+    }
+
+    /**
+     * Enhanced cleanup method
      */
     destroy() {
+        console.log("Destroying Prayer Time App...");
+        
+        // Clear intervals
         if (this.state.clockInterval) {
             clearInterval(this.state.clockInterval);
+            this.state.clockInterval = null;
         }
         if (this.state.audioInterval) {
             clearInterval(this.state.audioInterval);
+            this.state.audioInterval = null;
         }
         
         // Pause and cleanup audio
@@ -671,21 +1044,120 @@ class PrayerTimeApp {
             audio.src = "";
         });
         
+        // Clear state
         this.state.audioCache.clear();
         this.state.audioPlayed.clear();
+        this.state.todayPrayerTimes = {};
+        this.state.csvDataRaw = "";
+        this.state.isInitialized = false;
+        
+        console.log("Prayer Time App destroyed");
+    }
+
+    /**
+     * Restart the application
+     */
+    restart() {
+        console.log("Restarting Prayer Time App...");
+        this.destroy();
+        setTimeout(() => {
+            this.init();
+        }, 1000);
     }
 }
 
-// Initialize the application when DOM is loaded
+// Global instance and initialization
 let prayerApp;
 
+/**
+ * Initialize the application when DOM is loaded
+ */
 window.addEventListener("DOMContentLoaded", () => {
+    console.log("DOM loaded, initializing Prayer Time App...");
     prayerApp = new PrayerTimeApp();
+    
+    // Expose to global scope for debugging
+    window.prayerApp = prayerApp;
+    
+    // Add global debugging helpers
+    window.debugPrayerApp = {
+        getInfo: () => prayerApp.getDebugInfo(),
+        refreshData: () => prayerApp.refreshData(),
+        testAudio: (prayer, type) => prayerApp.testAudio(prayer, type),
+        forceNext: (prayer) => prayerApp.forceNextPrayer(prayer),
+        getPrayerTimes: (date) => prayerApp.getPrayerTimesForDate(date),
+        getAvailableDates: (limit) => prayerApp.getAvailableDates(limit),
+        restart: () => prayerApp.restart(),
+        debugCSV: () => prayerApp.debugCSVData()
+    };
+    
+    console.log("Prayer App debugging helpers available at: window.debugPrayerApp");
 });
 
-// Cleanup on page unload
+/**
+ * Cleanup on page unload
+ */
 window.addEventListener("beforeunload", () => {
     if (prayerApp) {
         prayerApp.destroy();
     }
 });
+
+/**
+ * Handle visibility changes for better performance
+ */
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && prayerApp && prayerApp.state.isInitialized) {
+        console.log("Page became visible, forcing clock update");
+        prayerApp.updateClock();
+    }
+});
+
+/**
+ * Global error handler for uncaught errors
+ */
+window.addEventListener('error', function(event) {
+    console.error('Global error caught:', event.error);
+    if (prayerApp) {
+        prayerApp.showError('Ralat aplikasi. Cuba muat semula halaman jika masalah berterusan.');
+    }
+});
+
+/**
+ * Handle unhandled promise rejections
+ */
+window.addEventListener('unhandledrejection', function(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+    if (prayerApp) {
+        prayerApp.showError('Ralat sistem. Sila semak sambungan internet.');
+    }
+});
+
+// Console welcome message
+console.log(`
+🕌 Enhanced Prayer Times Application v2.0
+=====================================
+• JAKIM official data support
+• TV-friendly interface with warm colors
+• Smart audio management
+• Performance monitoring
+• Enhanced debugging tools
+
+Debug commands available:
+• window.debugPrayerApp.getInfo() - Get app status
+• window.debugPrayerApp.testAudio('subuh', 'adhan') - Test audio
+• window.debugPrayerApp.refreshData() - Reload CSV data
+• window.debugPrayerApp.debugCSV() - Debug CSV parsing
+• window.debugPrayerApp.getAvailableDates(10) - Show dates in CSV
+
+For TV usage: 
+• Warm color scheme for night viewing
+• Fullscreen start button for easy clicking
+• Auto-start for returning users
+• Supports any input method (remote, keyboard, mouse)
+`);
+
+// Export for module systems (if needed)
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = PrayerTimeApp;
+}
