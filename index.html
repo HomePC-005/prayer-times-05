@@ -1,289 +1,595 @@
 <!DOCTYPE html>
 <html lang="ms">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Jam Waktu Solat</title>
-  
+  <title>Jam Waktu Solat - Segamat, Johor</title>
+
   <style>
-    html, body {
-  height: 100%;
-  width: 100%;
-  margin: 0;
-  background-color: #0a0a0a; /* deeper black */
-  color: #eaeaea;
-  font-family: 'Segoe UI', sans-serif;
-  overflow: hidden;
-}
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      background-color: #0a0a0a;
+      color: #eaeaea;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
 
-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
 
-/* Main container optimized for 1080p */
-.main-container {
-  width: 100%;
-  max-width: 1920px;
-  padding: 40px;
-  text-align: center;
-}
+    /* Main container optimized for 1080p */
+    .main-container {
+      width: 100%;
+      max-width: 1920px;
+      padding: 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      box-sizing: border-box;
+    }
 
-/* Date styling */
-.gregorian-date {
-  font-size: 2.5rem;
-  color: #bbbbbb;
-  margin-bottom: 0.5rem;
-}
+    /* Header section */
+    .header-section {
+      flex: 0 0 auto;
+      margin-bottom: 20px;
+    }
 
-.hijri-date {
-  font-size: 1.8rem;
-  color: #888888;
-  margin-bottom: 2rem;
-}
+    /* Location info */
+    .location-info {
+      font-size: 1.8rem;
+      color: #ffcc00;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
 
-/* Clock styling */
-#current-time {
-  font-size: 18rem;
-  font-family: 'Courier New', monospace;
-  font-weight: bold;
-  color: #ffffff;
-  text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
-  margin-bottom: 2rem;
-  line-height: 1;
-}
+    /* Date styling */
+    .gregorian-date {
+      font-size: 2.4rem;
+      color: #bbbbbb;
+      margin-bottom: 0.8rem;
+      font-weight: 500;
+    }
 
-/* Next prayer info */
-.next-prayer {
-  font-size: 3rem;
-  color: #00ffff;
-  font-weight: bold;
-  margin-bottom: 3rem;
-}
+    .hijri-date {
+      font-size: 1.8rem;
+      color: #888888;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
 
-/* Table layout */
-.prayer-table {
-  width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  border-collapse: separate;
-  border-spacing: 20px;
-}
+    .hijri-date .day-name {
+      color: #ffcc00;
+      font-weight: 600;
+    }
 
-.prayer-table td {
-  background-color: #111;
-  padding: 30px 20px;
-  font-size: 2.2rem;
-  font-weight: 500;
-  border: 2px solid #333;
-  border-radius: 15px;
-  transition: all 0.3s ease;
-}
+    /* Clock section */
+    .clock-section {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
 
-.prayer-table td.current {
-  background-color: #007bff;
-  color: white;
-  font-weight: bold;
-  border-color: #ffffff;
-  box-shadow: 0 0 20px rgba(0, 123, 255, 0.7);
-}
+    #current-time {
+      font-size: 24rem;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+      margin-bottom: 1.5rem;
+      line-height: 1;
+    }
 
-.prayer-name {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: bold;
-}
+    /* Next prayer info */
+    .next-prayer {
+      font-size: 2.8rem;
+      color: #ffcc00;
+      font-weight: bold;
+      margin-bottom: 2.5rem;
+      text-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+    }
 
-.prayer-time {
-  font-family: 'Courier New', monospace;
-  font-size: 1.5em;
-}
+    /* Prayer times table - matching your JS structure */
+    .prayer-table {
+      flex: 0 0 auto;
+      width: 100%;
+      max-width: 1920px;
+      margin: 0 auto;
+      border-collapse: separate;
+      border-spacing: 15px;
+    }
 
-/* Start screen */
-#start-screen {
-  position: fixed;
-  inset: 0;
-  background: #000;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-}
+    .prayer-table td {
+      background-color: #111;
+      padding: 25px 20px;
+      border: 2px solid #333;
+      border-radius: 15px;
+      transition: all 0.3s ease;
+      min-width: 220px;
+      position: relative;
+    }
 
-#start-button {
-  padding: 30px 60px;
-  font-size: 2.5rem;
-  background-color: #007bff;
-  color: #fff;
-  border: none;
-  border-radius: 12px;
-  cursor: pointer;
-}
+    .prayer-table td.current {
+      background-color: #b8860b;
+      color: white;
+      font-weight: bold;
+      border-color: #ffcc00;
+      box-shadow: 0 0 25px rgba(255, 204, 0, 0.8);
+      animation: pulse 2s infinite;
+      transform: scale(1.05);
+    }
 
-#start-button:hover {
-  background-color: #0056b3;
-}
+    .prayer-table td.passed {
+      background-color: #1a1a1a;
+      color: #666;
+      border-color: #222;
+      opacity: 0.7;
+    }
 
-#error-message {
-  position: fixed;
-  top: 30px;
-  right: 30px;
-  background-color: #d00;
-  color: #fff;
-  padding: 15px 30px;
-  border-radius: 5px;
-  font-size: 1.2rem;
-  z-index: 10000;
-  display: none;
-}
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 25px rgba(255, 204, 0, 0.8);
+      }
 
-/* Optional: hide test buttons unless triple clicked */
-.test-buttons {
-  display: none;
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 1000;
-}
+      50% {
+        box-shadow: 0 0 35px rgba(255, 204, 0, 1);
+      }
 
-.test-buttons.visible {
-  display: flex;
-  gap: 10px;
-}
+      100% {
+        box-shadow: 0 0 25px rgba(255, 204, 0, 0.8);
+      }
+    }
 
-.test-btn {
-  background: #222;
-  color: #fff;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border: 1px solid #555;
-  border-radius: 5px;
-  cursor: pointer;
-}
+    .prayer-name {
+      display: block;
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
 
+    .prayer-time {
+      font-family: 'Courier New', monospace;
+      font-size: 3.2rem;
+      font-weight: bold;
+      color: #ffcc00;
+    }
+
+    .prayer-table td.current .prayer-name,
+    .prayer-table td.current .prayer-time {
+      color: #ffffff;
+    }
+
+    /* Loading state */
+    .loading {
+      opacity: 0.6;
+      animation: pulse 1.5s infinite;
+    }
+
+    /* Status indicator */
+    .status-bar {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-size: 1.2rem;
+      border: 1px solid #333;
+      color: #ffd700;
+    }
+
+    .status-offline {
+      color: #ff6b6b;
+    }
+
+    /* Data source indicator */
+    .data-source {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-size: 1.1rem;
+      border: 1px solid #333;
+      color: #888;
+    }
+
+    /* Start screen */
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0a0a0a 100%);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+    .start-content {
+      text-align: center;
+      max-width: 600px;
+      padding: 40px;
+    }
+
+    .start-title {
+      font-size: 3.5rem;
+      color: #ffffff;
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .start-subtitle {
+      font-size: 1.8rem;
+      color: #ffcc00;
+      margin-bottom: 40px;
+    }
+
+    #start-button {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      font-size: 4rem;
+      background: linear-gradient(135deg, rgba(184, 134, 11, 0.95), rgba(255, 204, 0, 0.85));
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+      z-index: 10000;
+    }
+
+    #start-button:hover {
+      background: linear-gradient(135deg, rgba(255, 204, 0, 0.95), rgba(255, 215, 0, 0.85));
+      transform: scale(1.02);
+    }
+
+    #start-button:disabled {
+      opacity: 0.8;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .button-text {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .button-subtitle {
+      font-size: 2rem;
+      font-weight: normal;
+      opacity: 0.9;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    }
+
+    .start-info {
+      margin-top: 30px;
+      font-size: 1.3rem;
+      color: #cccccc;
+      line-height: 1.6;
+    }
+
+    #error-message {
+      position: fixed;
+      top: 30px;
+      right: 30px;
+      background: linear-gradient(45deg, #dc3545, #c82333);
+      color: #fff;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 1.3rem;
+      z-index: 10000;
+      display: none;
+      box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+      border: 1px solid #bd2130;
+    }
+
+    /* Test buttons - hidden by default */
+    .test-buttons {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      z-index: 1000;
+      gap: 10px;
+    }
+
+    .test-buttons.visible {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .test-btn {
+      background: #222;
+      color: #fff;
+      padding: 12px 20px;
+      font-size: 1.1rem;
+      border: 1px solid #555;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .test-btn:hover {
+      background: #333;
+      border-color: #777;
+    }
+
+    /* Responsive adjustments */
+    @media (max-height: 900px) {
+      #current-time {
+        font-size: 12rem;
+      }
+
+      .gregorian-date {
+        font-size: 2rem;
+      }
+
+      .prayer-name {
+        font-size: 1.8rem;
+      }
+
+      .prayer-time {
+        font-size: 2rem;
+      }
+
+      .next-prayer {
+        font-size: 2.4rem;
+      }
+    }
+
+    @media (max-width: 1400px) {
+      .prayer-table td {
+        min-width: 180px;
+        padding: 20px 15px;
+      }
+
+      .prayer-name {
+        font-size: 1.8rem;
+      }
+
+      .prayer-time {
+        font-size: 2rem;
+      }
+    }
+
+    /* Connection status animations */
+    @keyframes connected {
+      0% {
+        opacity: 0.7;
+      }
+
+      50% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0.7;
+      }
+    }
+
+    .status-bar.connected {
+      animation: connected 2s infinite;
+    }
   </style>
 </head>
+
 <body>
   <!-- Error Message Display -->
   <div id="error-message"></div>
-  
+
+  <!-- Status indicators -->
+  <div class="status-bar connected">
+    <span>● Data JAKIM Rasmi</span>
+  </div>
+
+  <div class="data-source">
+    Segamat, Johor
+  </div>
+
   <!-- Start Screen -->
   <div id="start-screen">
-    <div class="inner">
-      <button id="start-button">Klik untuk Mula</button>
-      <div style="margin-top: 20px; font-size: 1.2em; color: #cccccc;">
-        Tekan butang untuk memulakan aplikasi waktu solat
+    <button id="start-button">
+      <div class="button-text">🕌 Waktu Solat</div>
+      <div class="button-subtitle">Klik di mana-mana untuk mula</div>
+      <div style="margin-top: 30px; font-size: 1.5rem; opacity: 0.8;">
+        Segamat, Johor • Data Rasmi JAKIM
       </div>
-    </div>
+    </button>
   </div>
-  
+
   <!-- Main Content -->
   <div class="main-container">
-    <div class="top-section">
+    <div class="header-section">
+      <!-- Zone Selector -->
+      <div class="zone-selector" style="margin-bottom: 20px;">
+        <select id="zone-select"
+          style="padding: 10px 20px; font-size: 1.5rem; background: #222; color: #ffcc00; border: 1px solid #444; border-radius: 8px; width: 100%; max-width: 600px; text-align: center;">
+          <option value="detect-location">📍 Auto-Detect Location</option>
+          <option disabled>──────────────</option>
+          <option value="JHR04" selected>Johor (Batu Pahat, Muar...)</option>
+          <option value="JHR02">Johor (Johor Bahru, Kota Tinggi...)</option>
+          <option value="WLY01">Kuala Lumpur, Putrajaya</option>
+          <option value="SGR01">Selangor (Gombak, Petaling...)</option>
+          <option value="SGR02">Selangor (Kuala Selangor...)</option>
+          <option value="SGR03">Selangor (Klang, Kuala Langat)</option>
+          <option value="PNG01">Pulau Pinang</option>
+          <option value="KTN01">Kelantan (Kota Bharu...)</option>
+          <option value="TRG01">Terengganu (Kuala Terengganu...)</option>
+          <option value="KDH01">Kedah (Kota Setar...)</option>
+        </select>
+        <div id="location-name" style="margin-top: 10px; font-size: 1.2rem; color: #888; display: none;"></div>
+      </div>
       <div class="gregorian-date" id="gregorian-date">Loading date...</div>
       <div class="hijri-date" id="hijri-date">Tarikh Hijri: --/--/----</div>
-      <div id="current-time">--:--:--</div>
-      <div class="next-prayer" id="next-prayer-timer">Seterusnya: --</div>
     </div>
-    
-    <!-- Prayer Times Table -->
+
+    <div class="clock-section">
+      <div id="current-time">--:--:--</div>
+      <div class="next-prayer" id="next-prayer-timer">Memuatkan data waktu solat...</div>
+    </div>
+
+    <!-- Prayer Times Table - Structure matches your JS -->
     <table class="prayer-table" id="prayer-table">
       <tr>
         <!-- Prayer cells will be generated by JavaScript -->
       </tr>
     </table>
   </div>
-  
-  <!-- Test Buttons -->
+
+  <!-- Test Buttons (Hidden by default) -->
   <div class="test-buttons" id="test-buttons">
     <button class="test-btn" id="button-adhan">Test Azan</button>
     <button class="test-btn" id="button-recite">Test Bacaan</button>
     <button class="test-btn" id="toggle-test">Tutup</button>
   </div>
-  
-  <!-- Scripts -->
+
+  <!-- Your Script -->
   <script src="script.js"></script>
-  
+
   <script>
-    // Simple start screen handler for older browsers
+    // Additional compatibility handlers
+    document.addEventListener('DOMContentLoaded', function () {
+
+      // Auto-start option: Check if user has interacted before
+      // This allows bypassing start screen while maintaining audio capability
+      const hasInteracted = localStorage.getItem('prayer-app-interacted');
+
+      // Auto-start after 3 seconds if user previously interacted
+      if (hasInteracted === 'true') {
+        setTimeout(() => {
+          const startScreen = document.getElementById('start-screen');
+          if (startScreen && startScreen.style.display !== 'none') {
+            console.log('Auto-starting app (previous interaction detected)');
+            startApp();
+          }
+        }, 3000);
+      }
+
+      // Alternative: Start on any user interaction
+      let hasUserInteracted = false;
+
+      const handleFirstInteraction = () => {
+        if (!hasUserInteracted) {
+          hasUserInteracted = true;
+          localStorage.setItem('prayer-app-interacted', 'true');
+
+          const startScreen = document.getElementById('start-screen');
+          if (startScreen && startScreen.style.display !== 'none') {
+            startApp();
+          }
+        }
+      };
+
+      // Listen for any user interaction
+      ['click', 'touchstart', 'keydown', 'mousemove'].forEach(event => {
+        document.addEventListener(event, handleFirstInteraction, { once: true });
+      });
+
+      // Show test buttons on triple click (for debugging/testing)
+      let clickCount = 0;
+      let clickTimer = null;
+
+      document.addEventListener('click', function () {
+        clickCount++;
+
+        if (clickCount === 1) {
+          clickTimer = setTimeout(() => {
+            clickCount = 0;
+          }, 1000);
+        } else if (clickCount === 3) {
+          clearTimeout(clickTimer);
+          const testButtons = document.getElementById('test-buttons');
+          if (testButtons) {
+            testButtons.classList.add('visible');
+          }
+          clickCount = 0;
+        }
+      });
+
+      // Hide test buttons
+      const toggleTest = document.getElementById('toggle-test');
+      if (toggleTest) {
+        toggleTest.addEventListener('click', function () {
+          const testButtons = document.getElementById('test-buttons');
+          if (testButtons) {
+            testButtons.classList.remove('visible');
+          }
+        });
+      }
+
+      // Handle visibility changes for better performance
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && window.prayerApp) {
+          // Force update when page becomes visible
+          window.prayerApp.updateClock();
+        }
+      });
+
+      // Keyboard accessibility
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+          const startScreen = document.getElementById('start-screen');
+          if (startScreen && startScreen.style.display !== 'none') {
+            e.preventDefault();
+            const startButton = document.getElementById('start-button');
+            if (startButton) {
+              startButton.click();
+            }
+          }
+        }
+      });
+    });
+
+    // Enhanced start app function
     function startApp() {
-      var startScreen = document.getElementById('start-screen');
-      var startButton = document.getElementById('start-button');
-      
+      const startScreen = document.getElementById('start-screen');
+      const startButton = document.getElementById('start-button');
+
       if (startButton && startScreen) {
-        startButton.innerHTML = 'Memulakan...';
+        startButton.innerHTML = `
+          <div class="button-text">⏳ Memulakan...</div>
+          <div class="button-subtitle">Sila tunggu sebentar</div>
+        `;
         startButton.disabled = true;
-        startButton.style.opacity = '0.7';
-        
-        setTimeout(function() {
+
+        // Store interaction for future auto-start
+        localStorage.setItem('prayer-app-interacted', 'true');
+
+        setTimeout(() => {
           startScreen.style.display = 'none';
-        }, 1000);
+          if (window.prayerApp) {
+            window.prayerApp.init();
+          }
+        }, 1500);
       }
     }
-    
-    // Event listeners for older browser compatibility
-    if (document.addEventListener) {
-      document.addEventListener('DOMContentLoaded', function() {
-        var startButton = document.getElementById('start-button');
-        if (startButton) {
-          startButton.addEventListener('click', startApp);
-        }
-        
-        // Show test buttons on triple click
-        var clickCount = 0;
-        document.addEventListener('click', function() {
-          clickCount++;
-          if (clickCount === 3) {
-            var testButtons = document.getElementById('test-buttons');
-            if (testButtons) {
-              testButtons.className = 'test-buttons visible';
-            }
-            clickCount = 0;
-          }
-          setTimeout(function() { clickCount = 0; }, 1000);
-        });
-        
-        // Hide test buttons
-        var toggleTest = document.getElementById('toggle-test');
-        if (toggleTest) {
-          toggleTest.addEventListener('click', function() {
-            var testButtons = document.getElementById('test-buttons');
-            if (testButtons) {
-              testButtons.className = 'test-buttons';
-            }
-          });
-        }
-        
-        // Handle visibility change
-        if (typeof document.hidden !== "undefined") {
-          document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-              if (window.prayerApp && window.prayerApp.updateClock) {
-                window.prayerApp.updateClock();
-              }
-            }
-          });
-        }
-      });
-    } else if (document.attachEvent) {
-      // IE8 and older support
-      document.attachEvent('onreadystatechange', function() {
-        if (document.readyState === 'complete') {
-          var startButton = document.getElementById('start-button');
-          if (startButton) {
-            startButton.attachEvent('onclick', startApp);
-          }
-        }
-      });
-    }
-    
 
+    // Expose prayerApp globally for debugging
+    window.addEventListener("DOMContentLoaded", () => {
+      window.prayerApp = prayerApp;
+    });
   </script>
 </body>
+
 </html>
-
-
-
