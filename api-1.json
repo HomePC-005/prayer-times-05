@@ -1,0 +1,3940 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Waktu Solat API Documentation",
+    "description": "The Malaysia Waktu Solat API provides accurate prayer times (waktu solat) for various locations in Malaysia. It offers information on monthly prayer timings, zone detection based on coordinates and more.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.waktusolat.app"
+    }
+  ],
+  "tags": [
+    {
+      "name": "JADUAL SOLAT",
+      "description": "\nDownload monthly prayer timetable in PDF."
+    },
+    {
+      "name": "SOLAT V1",
+      "description": "\nReturn prayer time response similar to the JAKIM's structure. Suitable for drop in replacement\nfrom JAKIM's API.\n\n*Note: The values for 'bearing' and 'lang' are empty (`\"\"`).*"
+    },
+    {
+      "name": "SOLAT V2",
+      "description": "\nGet prayer times data for a given zone. Updated endpoint."
+    },
+    {
+      "name": "ZONES",
+      "description": "\nGet prayer time Zones & Location information."
+    }
+  ],
+  "paths": {
+    "/jadual_solat/{zone}": {
+      "get": {
+        "summary": "Download monthly prayer timetable in PDF.",
+        "operationId": "downloadMonthlyPrayerTimetableInPDF",
+        "description": "Return the prayer times in a specific month for a given zone.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "description": "The year. Defaults to current year.",
+            "example": 2025,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The year. Defaults to current year.",
+              "example": 2025,
+              "nullable": false
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+            "example": 6,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+              "example": 6,
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The PDF file",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Data not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "No data found for zone: XXXXX for MMM/YYYY"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No data found for zone: XXXXX for MMM/YYYY"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Server error"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "JADUAL SOLAT"
+        ],
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "zone",
+          "description": "The JAKIM zone code. See all zones using `/api/zones` endpoint.",
+          "example": "SGR01",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/solat/{zone}": {
+      "get": {
+        "summary": "Prayer Time by Month",
+        "operationId": "prayerTimeByMonth",
+        "description": "Returns prayer times data for a given zone, month & year.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "description": "The year. Defaults to current year.",
+            "example": 2024,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The year. Defaults to current year.",
+              "example": 2024,
+              "nullable": false
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+            "example": 4,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+              "example": 4,
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "prayerTime": [
+                      {
+                        "hijri": "1445-09-21",
+                        "date": "01-Apr-2024",
+                        "day": "Monday",
+                        "fajr": "06:05:00",
+                        "syuruk": "07:11:00",
+                        "dhuhr": "13:20:00",
+                        "asr": "16:22:00",
+                        "maghrib": "19:23:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-22",
+                        "date": "02-Apr-2024",
+                        "day": "Tuesday",
+                        "fajr": "06:05:00",
+                        "syuruk": "07:11:00",
+                        "dhuhr": "13:20:00",
+                        "asr": "16:23:00",
+                        "maghrib": "19:23:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-23",
+                        "date": "03-Apr-2024",
+                        "day": "Wednesday",
+                        "fajr": "06:04:00",
+                        "syuruk": "07:11:00",
+                        "dhuhr": "13:19:00",
+                        "asr": "16:23:00",
+                        "maghrib": "19:23:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-24",
+                        "date": "04-Apr-2024",
+                        "day": "Thursday",
+                        "fajr": "06:04:00",
+                        "syuruk": "07:10:00",
+                        "dhuhr": "13:19:00",
+                        "asr": "16:23:00",
+                        "maghrib": "19:23:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-25",
+                        "date": "05-Apr-2024",
+                        "day": "Friday",
+                        "fajr": "06:03:00",
+                        "syuruk": "07:10:00",
+                        "dhuhr": "13:19:00",
+                        "asr": "16:24:00",
+                        "maghrib": "19:23:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-26",
+                        "date": "06-Apr-2024",
+                        "day": "Saturday",
+                        "fajr": "06:03:00",
+                        "syuruk": "07:10:00",
+                        "dhuhr": "13:18:00",
+                        "asr": "16:24:00",
+                        "maghrib": "19:22:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-27",
+                        "date": "07-Apr-2024",
+                        "day": "Sunday",
+                        "fajr": "06:02:00",
+                        "syuruk": "07:09:00",
+                        "dhuhr": "13:18:00",
+                        "asr": "16:25:00",
+                        "maghrib": "19:22:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-28",
+                        "date": "08-Apr-2024",
+                        "day": "Monday",
+                        "fajr": "06:02:00",
+                        "syuruk": "07:09:00",
+                        "dhuhr": "13:18:00",
+                        "asr": "16:25:00",
+                        "maghrib": "19:22:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-09-29",
+                        "date": "09-Apr-2024",
+                        "day": "Tuesday",
+                        "fajr": "06:02:00",
+                        "syuruk": "07:08:00",
+                        "dhuhr": "13:18:00",
+                        "asr": "16:25:00",
+                        "maghrib": "19:22:00",
+                        "isha": "20:32:00"
+                      },
+                      {
+                        "hijri": "1445-10-01",
+                        "date": "10-Apr-2024",
+                        "day": "Wednesday",
+                        "fajr": "06:01:00",
+                        "syuruk": "07:08:00",
+                        "dhuhr": "13:17:00",
+                        "asr": "16:26:00",
+                        "maghrib": "19:22:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-02",
+                        "date": "11-Apr-2024",
+                        "day": "Thursday",
+                        "fajr": "06:01:00",
+                        "syuruk": "07:08:00",
+                        "dhuhr": "13:17:00",
+                        "asr": "16:26:00",
+                        "maghrib": "19:22:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-03",
+                        "date": "12-Apr-2024",
+                        "day": "Friday",
+                        "fajr": "06:00:00",
+                        "syuruk": "07:07:00",
+                        "dhuhr": "13:17:00",
+                        "asr": "16:26:00",
+                        "maghrib": "19:21:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-04",
+                        "date": "13-Apr-2024",
+                        "day": "Saturday",
+                        "fajr": "06:00:00",
+                        "syuruk": "07:07:00",
+                        "dhuhr": "13:16:00",
+                        "asr": "16:26:00",
+                        "maghrib": "19:21:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-05",
+                        "date": "14-Apr-2024",
+                        "day": "Sunday",
+                        "fajr": "05:59:00",
+                        "syuruk": "07:07:00",
+                        "dhuhr": "13:16:00",
+                        "asr": "16:27:00",
+                        "maghrib": "19:21:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-06",
+                        "date": "15-Apr-2024",
+                        "day": "Monday",
+                        "fajr": "05:59:00",
+                        "syuruk": "07:06:00",
+                        "dhuhr": "13:16:00",
+                        "asr": "16:27:00",
+                        "maghrib": "19:21:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-07",
+                        "date": "16-Apr-2024",
+                        "day": "Tuesday",
+                        "fajr": "05:59:00",
+                        "syuruk": "07:06:00",
+                        "dhuhr": "13:16:00",
+                        "asr": "16:27:00",
+                        "maghrib": "19:21:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-08",
+                        "date": "17-Apr-2024",
+                        "day": "Wednesday",
+                        "fajr": "05:58:00",
+                        "syuruk": "07:06:00",
+                        "dhuhr": "13:16:00",
+                        "asr": "16:28:00",
+                        "maghrib": "19:21:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-09",
+                        "date": "18-Apr-2024",
+                        "day": "Thursday",
+                        "fajr": "05:58:00",
+                        "syuruk": "07:06:00",
+                        "dhuhr": "13:15:00",
+                        "asr": "16:28:00",
+                        "maghrib": "19:21:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-10",
+                        "date": "19-Apr-2024",
+                        "day": "Friday",
+                        "fajr": "05:57:00",
+                        "syuruk": "07:05:00",
+                        "dhuhr": "13:15:00",
+                        "asr": "16:28:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-11",
+                        "date": "20-Apr-2024",
+                        "day": "Saturday",
+                        "fajr": "05:57:00",
+                        "syuruk": "07:05:00",
+                        "dhuhr": "13:15:00",
+                        "asr": "16:28:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-12",
+                        "date": "21-Apr-2024",
+                        "day": "Sunday",
+                        "fajr": "05:57:00",
+                        "syuruk": "07:05:00",
+                        "dhuhr": "13:15:00",
+                        "asr": "16:29:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-13",
+                        "date": "22-Apr-2024",
+                        "day": "Monday",
+                        "fajr": "05:56:00",
+                        "syuruk": "07:04:00",
+                        "dhuhr": "13:14:00",
+                        "asr": "16:29:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-14",
+                        "date": "23-Apr-2024",
+                        "day": "Tuesday",
+                        "fajr": "05:56:00",
+                        "syuruk": "07:04:00",
+                        "dhuhr": "13:14:00",
+                        "asr": "16:29:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-15",
+                        "date": "24-Apr-2024",
+                        "day": "Wednesday",
+                        "fajr": "05:56:00",
+                        "syuruk": "07:04:00",
+                        "dhuhr": "13:14:00",
+                        "asr": "16:29:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-16",
+                        "date": "25-Apr-2024",
+                        "day": "Thursday",
+                        "fajr": "05:55:00",
+                        "syuruk": "07:04:00",
+                        "dhuhr": "13:14:00",
+                        "asr": "16:30:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-17",
+                        "date": "26-Apr-2024",
+                        "day": "Friday",
+                        "fajr": "05:55:00",
+                        "syuruk": "07:03:00",
+                        "dhuhr": "13:14:00",
+                        "asr": "16:30:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-18",
+                        "date": "27-Apr-2024",
+                        "day": "Saturday",
+                        "fajr": "05:55:00",
+                        "syuruk": "07:03:00",
+                        "dhuhr": "13:14:00",
+                        "asr": "16:30:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-19",
+                        "date": "28-Apr-2024",
+                        "day": "Sunday",
+                        "fajr": "05:54:00",
+                        "syuruk": "07:03:00",
+                        "dhuhr": "13:13:00",
+                        "asr": "16:30:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-20",
+                        "date": "29-Apr-2024",
+                        "day": "Monday",
+                        "fajr": "05:54:00",
+                        "syuruk": "07:03:00",
+                        "dhuhr": "13:13:00",
+                        "asr": "16:31:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      },
+                      {
+                        "hijri": "1445-10-21",
+                        "date": "30-Apr-2024",
+                        "day": "Tuesday",
+                        "fajr": "05:54:00",
+                        "syuruk": "07:03:00",
+                        "dhuhr": "13:13:00",
+                        "asr": "16:31:00",
+                        "maghrib": "19:20:00",
+                        "isha": "20:31:00"
+                      }
+                    ],
+                    "status": "OK!",
+                    "serverTime": "2025-12-19 11:14:15",
+                    "periodType": "month",
+                    "lang": "",
+                    "zone": "SGR01",
+                    "bearing": ""
+                  },
+                  "properties": {
+                    "prayerTime": {
+                      "type": "array",
+                      "example": [
+                        {
+                          "hijri": "1445-09-21",
+                          "date": "01-Apr-2024",
+                          "day": "Monday",
+                          "fajr": "06:05:00",
+                          "syuruk": "07:11:00",
+                          "dhuhr": "13:20:00",
+                          "asr": "16:22:00",
+                          "maghrib": "19:23:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-22",
+                          "date": "02-Apr-2024",
+                          "day": "Tuesday",
+                          "fajr": "06:05:00",
+                          "syuruk": "07:11:00",
+                          "dhuhr": "13:20:00",
+                          "asr": "16:23:00",
+                          "maghrib": "19:23:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-23",
+                          "date": "03-Apr-2024",
+                          "day": "Wednesday",
+                          "fajr": "06:04:00",
+                          "syuruk": "07:11:00",
+                          "dhuhr": "13:19:00",
+                          "asr": "16:23:00",
+                          "maghrib": "19:23:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-24",
+                          "date": "04-Apr-2024",
+                          "day": "Thursday",
+                          "fajr": "06:04:00",
+                          "syuruk": "07:10:00",
+                          "dhuhr": "13:19:00",
+                          "asr": "16:23:00",
+                          "maghrib": "19:23:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-25",
+                          "date": "05-Apr-2024",
+                          "day": "Friday",
+                          "fajr": "06:03:00",
+                          "syuruk": "07:10:00",
+                          "dhuhr": "13:19:00",
+                          "asr": "16:24:00",
+                          "maghrib": "19:23:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-26",
+                          "date": "06-Apr-2024",
+                          "day": "Saturday",
+                          "fajr": "06:03:00",
+                          "syuruk": "07:10:00",
+                          "dhuhr": "13:18:00",
+                          "asr": "16:24:00",
+                          "maghrib": "19:22:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-27",
+                          "date": "07-Apr-2024",
+                          "day": "Sunday",
+                          "fajr": "06:02:00",
+                          "syuruk": "07:09:00",
+                          "dhuhr": "13:18:00",
+                          "asr": "16:25:00",
+                          "maghrib": "19:22:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-28",
+                          "date": "08-Apr-2024",
+                          "day": "Monday",
+                          "fajr": "06:02:00",
+                          "syuruk": "07:09:00",
+                          "dhuhr": "13:18:00",
+                          "asr": "16:25:00",
+                          "maghrib": "19:22:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-09-29",
+                          "date": "09-Apr-2024",
+                          "day": "Tuesday",
+                          "fajr": "06:02:00",
+                          "syuruk": "07:08:00",
+                          "dhuhr": "13:18:00",
+                          "asr": "16:25:00",
+                          "maghrib": "19:22:00",
+                          "isha": "20:32:00"
+                        },
+                        {
+                          "hijri": "1445-10-01",
+                          "date": "10-Apr-2024",
+                          "day": "Wednesday",
+                          "fajr": "06:01:00",
+                          "syuruk": "07:08:00",
+                          "dhuhr": "13:17:00",
+                          "asr": "16:26:00",
+                          "maghrib": "19:22:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-02",
+                          "date": "11-Apr-2024",
+                          "day": "Thursday",
+                          "fajr": "06:01:00",
+                          "syuruk": "07:08:00",
+                          "dhuhr": "13:17:00",
+                          "asr": "16:26:00",
+                          "maghrib": "19:22:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-03",
+                          "date": "12-Apr-2024",
+                          "day": "Friday",
+                          "fajr": "06:00:00",
+                          "syuruk": "07:07:00",
+                          "dhuhr": "13:17:00",
+                          "asr": "16:26:00",
+                          "maghrib": "19:21:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-04",
+                          "date": "13-Apr-2024",
+                          "day": "Saturday",
+                          "fajr": "06:00:00",
+                          "syuruk": "07:07:00",
+                          "dhuhr": "13:16:00",
+                          "asr": "16:26:00",
+                          "maghrib": "19:21:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-05",
+                          "date": "14-Apr-2024",
+                          "day": "Sunday",
+                          "fajr": "05:59:00",
+                          "syuruk": "07:07:00",
+                          "dhuhr": "13:16:00",
+                          "asr": "16:27:00",
+                          "maghrib": "19:21:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-06",
+                          "date": "15-Apr-2024",
+                          "day": "Monday",
+                          "fajr": "05:59:00",
+                          "syuruk": "07:06:00",
+                          "dhuhr": "13:16:00",
+                          "asr": "16:27:00",
+                          "maghrib": "19:21:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-07",
+                          "date": "16-Apr-2024",
+                          "day": "Tuesday",
+                          "fajr": "05:59:00",
+                          "syuruk": "07:06:00",
+                          "dhuhr": "13:16:00",
+                          "asr": "16:27:00",
+                          "maghrib": "19:21:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-08",
+                          "date": "17-Apr-2024",
+                          "day": "Wednesday",
+                          "fajr": "05:58:00",
+                          "syuruk": "07:06:00",
+                          "dhuhr": "13:16:00",
+                          "asr": "16:28:00",
+                          "maghrib": "19:21:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-09",
+                          "date": "18-Apr-2024",
+                          "day": "Thursday",
+                          "fajr": "05:58:00",
+                          "syuruk": "07:06:00",
+                          "dhuhr": "13:15:00",
+                          "asr": "16:28:00",
+                          "maghrib": "19:21:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-10",
+                          "date": "19-Apr-2024",
+                          "day": "Friday",
+                          "fajr": "05:57:00",
+                          "syuruk": "07:05:00",
+                          "dhuhr": "13:15:00",
+                          "asr": "16:28:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-11",
+                          "date": "20-Apr-2024",
+                          "day": "Saturday",
+                          "fajr": "05:57:00",
+                          "syuruk": "07:05:00",
+                          "dhuhr": "13:15:00",
+                          "asr": "16:28:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-12",
+                          "date": "21-Apr-2024",
+                          "day": "Sunday",
+                          "fajr": "05:57:00",
+                          "syuruk": "07:05:00",
+                          "dhuhr": "13:15:00",
+                          "asr": "16:29:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-13",
+                          "date": "22-Apr-2024",
+                          "day": "Monday",
+                          "fajr": "05:56:00",
+                          "syuruk": "07:04:00",
+                          "dhuhr": "13:14:00",
+                          "asr": "16:29:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-14",
+                          "date": "23-Apr-2024",
+                          "day": "Tuesday",
+                          "fajr": "05:56:00",
+                          "syuruk": "07:04:00",
+                          "dhuhr": "13:14:00",
+                          "asr": "16:29:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-15",
+                          "date": "24-Apr-2024",
+                          "day": "Wednesday",
+                          "fajr": "05:56:00",
+                          "syuruk": "07:04:00",
+                          "dhuhr": "13:14:00",
+                          "asr": "16:29:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-16",
+                          "date": "25-Apr-2024",
+                          "day": "Thursday",
+                          "fajr": "05:55:00",
+                          "syuruk": "07:04:00",
+                          "dhuhr": "13:14:00",
+                          "asr": "16:30:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-17",
+                          "date": "26-Apr-2024",
+                          "day": "Friday",
+                          "fajr": "05:55:00",
+                          "syuruk": "07:03:00",
+                          "dhuhr": "13:14:00",
+                          "asr": "16:30:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-18",
+                          "date": "27-Apr-2024",
+                          "day": "Saturday",
+                          "fajr": "05:55:00",
+                          "syuruk": "07:03:00",
+                          "dhuhr": "13:14:00",
+                          "asr": "16:30:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-19",
+                          "date": "28-Apr-2024",
+                          "day": "Sunday",
+                          "fajr": "05:54:00",
+                          "syuruk": "07:03:00",
+                          "dhuhr": "13:13:00",
+                          "asr": "16:30:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-20",
+                          "date": "29-Apr-2024",
+                          "day": "Monday",
+                          "fajr": "05:54:00",
+                          "syuruk": "07:03:00",
+                          "dhuhr": "13:13:00",
+                          "asr": "16:31:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        },
+                        {
+                          "hijri": "1445-10-21",
+                          "date": "30-Apr-2024",
+                          "day": "Tuesday",
+                          "fajr": "05:54:00",
+                          "syuruk": "07:03:00",
+                          "dhuhr": "13:13:00",
+                          "asr": "16:31:00",
+                          "maghrib": "19:20:00",
+                          "isha": "20:31:00"
+                        }
+                      ],
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "hijri": {
+                            "type": "string",
+                            "example": "1445-09-21"
+                          },
+                          "date": {
+                            "type": "string",
+                            "example": "01-Apr-2024"
+                          },
+                          "day": {
+                            "type": "string",
+                            "example": "Monday"
+                          },
+                          "fajr": {
+                            "type": "string",
+                            "example": "06:05:00"
+                          },
+                          "syuruk": {
+                            "type": "string",
+                            "example": "07:11:00"
+                          },
+                          "dhuhr": {
+                            "type": "string",
+                            "example": "13:20:00"
+                          },
+                          "asr": {
+                            "type": "string",
+                            "example": "16:22:00"
+                          },
+                          "maghrib": {
+                            "type": "string",
+                            "example": "19:23:00"
+                          },
+                          "isha": {
+                            "type": "string",
+                            "example": "20:32:00"
+                          }
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "OK!"
+                    },
+                    "serverTime": {
+                      "type": "string",
+                      "example": "2025-12-19 11:14:15"
+                    },
+                    "periodType": {
+                      "type": "string",
+                      "example": "month"
+                    },
+                    "lang": {
+                      "type": "string",
+                      "example": ""
+                    },
+                    "zone": {
+                      "type": "string",
+                      "example": "SGR01"
+                    },
+                    "bearing": {
+                      "type": "string",
+                      "example": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "SOLAT V1"
+        ],
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "zone",
+          "description": "The JAKIM zone code. See all zones using `/api/zones` endpoint.",
+          "example": "SGR01",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/solat/{zone}/{day}": {
+      "get": {
+        "summary": "Prayer Time by Day",
+        "operationId": "prayerTimeByDay",
+        "description": "Returns prayer times data for a given day, zone, month & year.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "description": "The year. Defaults to current year.",
+            "example": 2024,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The year. Defaults to current year.",
+              "example": 2024,
+              "nullable": false
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+            "example": 4,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+              "example": 4,
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "prayerTime": {
+                      "hijri": "1445-09-21",
+                      "date": "01-Apr-2024",
+                      "day": "Monday",
+                      "fajr": "06:05:00",
+                      "syuruk": "07:11:00",
+                      "dhuhr": "13:20:00",
+                      "asr": "16:22:00",
+                      "maghrib": "19:23:00",
+                      "isha": "20:32:00"
+                    },
+                    "status": "OK!",
+                    "serverTime": "2025-12-19 11:14:15",
+                    "periodType": "day",
+                    "lang": "",
+                    "zone": "SGR01",
+                    "bearing": ""
+                  },
+                  "properties": {
+                    "prayerTime": {
+                      "type": "object",
+                      "properties": {
+                        "hijri": {
+                          "type": "string",
+                          "example": "1445-09-21"
+                        },
+                        "date": {
+                          "type": "string",
+                          "example": "01-Apr-2024"
+                        },
+                        "day": {
+                          "type": "string",
+                          "example": "Monday"
+                        },
+                        "fajr": {
+                          "type": "string",
+                          "example": "06:05:00"
+                        },
+                        "syuruk": {
+                          "type": "string",
+                          "example": "07:11:00"
+                        },
+                        "dhuhr": {
+                          "type": "string",
+                          "example": "13:20:00"
+                        },
+                        "asr": {
+                          "type": "string",
+                          "example": "16:22:00"
+                        },
+                        "maghrib": {
+                          "type": "string",
+                          "example": "19:23:00"
+                        },
+                        "isha": {
+                          "type": "string",
+                          "example": "20:32:00"
+                        }
+                      }
+                    },
+                    "status": {
+                      "type": "string",
+                      "example": "OK!"
+                    },
+                    "serverTime": {
+                      "type": "string",
+                      "example": "2025-12-19 11:14:15"
+                    },
+                    "periodType": {
+                      "type": "string",
+                      "example": "day"
+                    },
+                    "lang": {
+                      "type": "string",
+                      "example": ""
+                    },
+                    "zone": {
+                      "type": "string",
+                      "example": "SGR01"
+                    },
+                    "bearing": {
+                      "type": "string",
+                      "example": ""
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "SOLAT V1"
+        ],
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "zone",
+          "description": "The JAKIM zone code. See all zones using `/api/zones` endpoint.",
+          "example": "SGR01",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "day",
+          "description": "Tne day of the month.",
+          "example": 1,
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/v2/solat/{zone}": {
+      "get": {
+        "summary": "v2/Prayer Time",
+        "operationId": "v2PrayerTime",
+        "description": "Return the prayer times in a specific month for a given zone.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "description": "The year. Defaults to current year.",
+            "example": 2025,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The year. Defaults to current year.",
+              "example": 2025,
+              "nullable": false
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+            "example": 6,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+              "example": 6,
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "zone": "SGR01",
+                    "year": 2025,
+                    "month": "JUN",
+                    "month_number": 6,
+                    "last_updated": null,
+                    "prayers": [
+                      {
+                        "day": 1,
+                        "hijri": "1446-12-04",
+                        "fajr": 1748728140,
+                        "syuruk": 1748732460,
+                        "dhuhr": 1748754840,
+                        "asr": 1748767140,
+                        "maghrib": 1748776920,
+                        "isha": 1748781420
+                      },
+                      {
+                        "day": 2,
+                        "hijri": "1446-12-05",
+                        "fajr": 1748814540,
+                        "syuruk": 1748818920,
+                        "dhuhr": 1748841240,
+                        "asr": 1748853540,
+                        "maghrib": 1748863380,
+                        "isha": 1748867880
+                      },
+                      {
+                        "day": 3,
+                        "hijri": "1446-12-06",
+                        "fajr": 1748900940,
+                        "syuruk": 1748905320,
+                        "dhuhr": 1748927640,
+                        "asr": 1748939940,
+                        "maghrib": 1748949780,
+                        "isha": 1748954280
+                      },
+                      {
+                        "day": 4,
+                        "hijri": "1446-12-07",
+                        "fajr": 1748987400,
+                        "syuruk": 1748991720,
+                        "dhuhr": 1749014040,
+                        "asr": 1749026340,
+                        "maghrib": 1749036180,
+                        "isha": 1749040680
+                      },
+                      {
+                        "day": 5,
+                        "hijri": "1446-12-08",
+                        "fajr": 1749073800,
+                        "syuruk": 1749078120,
+                        "dhuhr": 1749100500,
+                        "asr": 1749112800,
+                        "maghrib": 1749122580,
+                        "isha": 1749127140
+                      },
+                      {
+                        "day": 6,
+                        "hijri": "1446-12-09",
+                        "fajr": 1749160200,
+                        "syuruk": 1749164520,
+                        "dhuhr": 1749186900,
+                        "asr": 1749199200,
+                        "maghrib": 1749209040,
+                        "isha": 1749213540
+                      },
+                      {
+                        "day": 7,
+                        "hijri": "1446-12-10",
+                        "fajr": 1749246600,
+                        "syuruk": 1749250920,
+                        "dhuhr": 1749273300,
+                        "asr": 1749285600,
+                        "maghrib": 1749295440,
+                        "isha": 1749299940
+                      },
+                      {
+                        "day": 8,
+                        "hijri": "1446-12-11",
+                        "fajr": 1749333000,
+                        "syuruk": 1749337320,
+                        "dhuhr": 1749359700,
+                        "asr": 1749372060,
+                        "maghrib": 1749381840,
+                        "isha": 1749386340
+                      },
+                      {
+                        "day": 9,
+                        "hijri": "1446-12-12",
+                        "fajr": 1749419400,
+                        "syuruk": 1749423780,
+                        "dhuhr": 1749446100,
+                        "asr": 1749458460,
+                        "maghrib": 1749468240,
+                        "isha": 1749472800
+                      },
+                      {
+                        "day": 10,
+                        "hijri": "1446-12-13",
+                        "fajr": 1749505800,
+                        "syuruk": 1749510180,
+                        "dhuhr": 1749532500,
+                        "asr": 1749544860,
+                        "maghrib": 1749554640,
+                        "isha": 1749559200
+                      },
+                      {
+                        "day": 11,
+                        "hijri": "1446-12-14",
+                        "fajr": 1749592200,
+                        "syuruk": 1749596580,
+                        "dhuhr": 1749618960,
+                        "asr": 1749631260,
+                        "maghrib": 1749641100,
+                        "isha": 1749645600
+                      },
+                      {
+                        "day": 12,
+                        "hijri": "1446-12-15",
+                        "fajr": 1749678600,
+                        "syuruk": 1749682980,
+                        "dhuhr": 1749705360,
+                        "asr": 1749717720,
+                        "maghrib": 1749727500,
+                        "isha": 1749732000
+                      },
+                      {
+                        "day": 13,
+                        "hijri": "1446-12-16",
+                        "fajr": 1749765060,
+                        "syuruk": 1749769380,
+                        "dhuhr": 1749791760,
+                        "asr": 1749804120,
+                        "maghrib": 1749813900,
+                        "isha": 1749818460
+                      },
+                      {
+                        "day": 14,
+                        "hijri": "1446-12-17",
+                        "fajr": 1749851460,
+                        "syuruk": 1749855780,
+                        "dhuhr": 1749878160,
+                        "asr": 1749890520,
+                        "maghrib": 1749900300,
+                        "isha": 1749904860
+                      },
+                      {
+                        "day": 15,
+                        "hijri": "1446-12-18",
+                        "fajr": 1749937860,
+                        "syuruk": 1749942240,
+                        "dhuhr": 1749964620,
+                        "asr": 1749976920,
+                        "maghrib": 1749986760,
+                        "isha": 1749991260
+                      },
+                      {
+                        "day": 16,
+                        "hijri": "1446-12-19",
+                        "fajr": 1750024260,
+                        "syuruk": 1750028640,
+                        "dhuhr": 1750051020,
+                        "asr": 1750063380,
+                        "maghrib": 1750073160,
+                        "isha": 1750077660
+                      },
+                      {
+                        "day": 17,
+                        "hijri": "1446-12-20",
+                        "fajr": 1750110660,
+                        "syuruk": 1750115040,
+                        "dhuhr": 1750137420,
+                        "asr": 1750149780,
+                        "maghrib": 1750159560,
+                        "isha": 1750164120
+                      },
+                      {
+                        "day": 18,
+                        "hijri": "1446-12-21",
+                        "fajr": 1750197120,
+                        "syuruk": 1750201440,
+                        "dhuhr": 1750223820,
+                        "asr": 1750236180,
+                        "maghrib": 1750245960,
+                        "isha": 1750250520
+                      },
+                      {
+                        "day": 19,
+                        "hijri": "1446-12-22",
+                        "fajr": 1750283520,
+                        "syuruk": 1750287900,
+                        "dhuhr": 1750310220,
+                        "asr": 1750322580,
+                        "maghrib": 1750332360,
+                        "isha": 1750336920
+                      },
+                      {
+                        "day": 20,
+                        "hijri": "1446-12-23",
+                        "fajr": 1750369920,
+                        "syuruk": 1750374300,
+                        "dhuhr": 1750396680,
+                        "asr": 1750408980,
+                        "maghrib": 1750418820,
+                        "isha": 1750423320
+                      },
+                      {
+                        "day": 21,
+                        "hijri": "1446-12-24",
+                        "fajr": 1750456320,
+                        "syuruk": 1750460700,
+                        "dhuhr": 1750483080,
+                        "asr": 1750495440,
+                        "maghrib": 1750505220,
+                        "isha": 1750509780
+                      },
+                      {
+                        "day": 22,
+                        "hijri": "1446-12-25",
+                        "fajr": 1750542720,
+                        "syuruk": 1750547100,
+                        "dhuhr": 1750569480,
+                        "asr": 1750581840,
+                        "maghrib": 1750591620,
+                        "isha": 1750596180
+                      },
+                      {
+                        "day": 23,
+                        "hijri": "1446-12-26",
+                        "fajr": 1750629180,
+                        "syuruk": 1750633500,
+                        "dhuhr": 1750655880,
+                        "asr": 1750668240,
+                        "maghrib": 1750678020,
+                        "isha": 1750682580
+                      },
+                      {
+                        "day": 24,
+                        "hijri": "1446-12-27",
+                        "fajr": 1750715580,
+                        "syuruk": 1750719960,
+                        "dhuhr": 1750742280,
+                        "asr": 1750754640,
+                        "maghrib": 1750764480,
+                        "isha": 1750768980
+                      },
+                      {
+                        "day": 25,
+                        "hijri": "1446-12-28",
+                        "fajr": 1750801980,
+                        "syuruk": 1750806360,
+                        "dhuhr": 1750828740,
+                        "asr": 1750841100,
+                        "maghrib": 1750850880,
+                        "isha": 1750855380
+                      },
+                      {
+                        "day": 26,
+                        "hijri": "1446-12-29",
+                        "fajr": 1750888380,
+                        "syuruk": 1750892760,
+                        "dhuhr": 1750915140,
+                        "asr": 1750927500,
+                        "maghrib": 1750937280,
+                        "isha": 1750941840
+                      },
+                      {
+                        "day": 27,
+                        "hijri": "1447-01-01",
+                        "fajr": 1750974840,
+                        "syuruk": 1750979160,
+                        "dhuhr": 1751001540,
+                        "asr": 1751013900,
+                        "maghrib": 1751023680,
+                        "isha": 1751028240
+                      },
+                      {
+                        "day": 28,
+                        "hijri": "1447-01-02",
+                        "fajr": 1751061240,
+                        "syuruk": 1751065620,
+                        "dhuhr": 1751087940,
+                        "asr": 1751100300,
+                        "maghrib": 1751110080,
+                        "isha": 1751114640
+                      },
+                      {
+                        "day": 29,
+                        "hijri": "1447-01-03",
+                        "fajr": 1751147640,
+                        "syuruk": 1751152020,
+                        "dhuhr": 1751174400,
+                        "asr": 1751186700,
+                        "maghrib": 1751196540,
+                        "isha": 1751201040
+                      },
+                      {
+                        "day": 30,
+                        "hijri": "1447-01-04",
+                        "fajr": 1751234040,
+                        "syuruk": 1751238420,
+                        "dhuhr": 1751260800,
+                        "asr": 1751273100,
+                        "maghrib": 1751282940,
+                        "isha": 1751287440
+                      }
+                    ]
+                  },
+                  "properties": {
+                    "zone": {
+                      "type": "string",
+                      "example": "SGR01"
+                    },
+                    "year": {
+                      "type": "integer",
+                      "example": 2025
+                    },
+                    "month": {
+                      "type": "string",
+                      "example": "JUN"
+                    },
+                    "month_number": {
+                      "type": "integer",
+                      "example": 6
+                    },
+                    "last_updated": {
+                      "type": "string",
+                      "example": null
+                    },
+                    "prayers": {
+                      "type": "array",
+                      "example": [
+                        {
+                          "day": 1,
+                          "hijri": "1446-12-04",
+                          "fajr": 1748728140,
+                          "syuruk": 1748732460,
+                          "dhuhr": 1748754840,
+                          "asr": 1748767140,
+                          "maghrib": 1748776920,
+                          "isha": 1748781420
+                        },
+                        {
+                          "day": 2,
+                          "hijri": "1446-12-05",
+                          "fajr": 1748814540,
+                          "syuruk": 1748818920,
+                          "dhuhr": 1748841240,
+                          "asr": 1748853540,
+                          "maghrib": 1748863380,
+                          "isha": 1748867880
+                        },
+                        {
+                          "day": 3,
+                          "hijri": "1446-12-06",
+                          "fajr": 1748900940,
+                          "syuruk": 1748905320,
+                          "dhuhr": 1748927640,
+                          "asr": 1748939940,
+                          "maghrib": 1748949780,
+                          "isha": 1748954280
+                        },
+                        {
+                          "day": 4,
+                          "hijri": "1446-12-07",
+                          "fajr": 1748987400,
+                          "syuruk": 1748991720,
+                          "dhuhr": 1749014040,
+                          "asr": 1749026340,
+                          "maghrib": 1749036180,
+                          "isha": 1749040680
+                        },
+                        {
+                          "day": 5,
+                          "hijri": "1446-12-08",
+                          "fajr": 1749073800,
+                          "syuruk": 1749078120,
+                          "dhuhr": 1749100500,
+                          "asr": 1749112800,
+                          "maghrib": 1749122580,
+                          "isha": 1749127140
+                        },
+                        {
+                          "day": 6,
+                          "hijri": "1446-12-09",
+                          "fajr": 1749160200,
+                          "syuruk": 1749164520,
+                          "dhuhr": 1749186900,
+                          "asr": 1749199200,
+                          "maghrib": 1749209040,
+                          "isha": 1749213540
+                        },
+                        {
+                          "day": 7,
+                          "hijri": "1446-12-10",
+                          "fajr": 1749246600,
+                          "syuruk": 1749250920,
+                          "dhuhr": 1749273300,
+                          "asr": 1749285600,
+                          "maghrib": 1749295440,
+                          "isha": 1749299940
+                        },
+                        {
+                          "day": 8,
+                          "hijri": "1446-12-11",
+                          "fajr": 1749333000,
+                          "syuruk": 1749337320,
+                          "dhuhr": 1749359700,
+                          "asr": 1749372060,
+                          "maghrib": 1749381840,
+                          "isha": 1749386340
+                        },
+                        {
+                          "day": 9,
+                          "hijri": "1446-12-12",
+                          "fajr": 1749419400,
+                          "syuruk": 1749423780,
+                          "dhuhr": 1749446100,
+                          "asr": 1749458460,
+                          "maghrib": 1749468240,
+                          "isha": 1749472800
+                        },
+                        {
+                          "day": 10,
+                          "hijri": "1446-12-13",
+                          "fajr": 1749505800,
+                          "syuruk": 1749510180,
+                          "dhuhr": 1749532500,
+                          "asr": 1749544860,
+                          "maghrib": 1749554640,
+                          "isha": 1749559200
+                        },
+                        {
+                          "day": 11,
+                          "hijri": "1446-12-14",
+                          "fajr": 1749592200,
+                          "syuruk": 1749596580,
+                          "dhuhr": 1749618960,
+                          "asr": 1749631260,
+                          "maghrib": 1749641100,
+                          "isha": 1749645600
+                        },
+                        {
+                          "day": 12,
+                          "hijri": "1446-12-15",
+                          "fajr": 1749678600,
+                          "syuruk": 1749682980,
+                          "dhuhr": 1749705360,
+                          "asr": 1749717720,
+                          "maghrib": 1749727500,
+                          "isha": 1749732000
+                        },
+                        {
+                          "day": 13,
+                          "hijri": "1446-12-16",
+                          "fajr": 1749765060,
+                          "syuruk": 1749769380,
+                          "dhuhr": 1749791760,
+                          "asr": 1749804120,
+                          "maghrib": 1749813900,
+                          "isha": 1749818460
+                        },
+                        {
+                          "day": 14,
+                          "hijri": "1446-12-17",
+                          "fajr": 1749851460,
+                          "syuruk": 1749855780,
+                          "dhuhr": 1749878160,
+                          "asr": 1749890520,
+                          "maghrib": 1749900300,
+                          "isha": 1749904860
+                        },
+                        {
+                          "day": 15,
+                          "hijri": "1446-12-18",
+                          "fajr": 1749937860,
+                          "syuruk": 1749942240,
+                          "dhuhr": 1749964620,
+                          "asr": 1749976920,
+                          "maghrib": 1749986760,
+                          "isha": 1749991260
+                        },
+                        {
+                          "day": 16,
+                          "hijri": "1446-12-19",
+                          "fajr": 1750024260,
+                          "syuruk": 1750028640,
+                          "dhuhr": 1750051020,
+                          "asr": 1750063380,
+                          "maghrib": 1750073160,
+                          "isha": 1750077660
+                        },
+                        {
+                          "day": 17,
+                          "hijri": "1446-12-20",
+                          "fajr": 1750110660,
+                          "syuruk": 1750115040,
+                          "dhuhr": 1750137420,
+                          "asr": 1750149780,
+                          "maghrib": 1750159560,
+                          "isha": 1750164120
+                        },
+                        {
+                          "day": 18,
+                          "hijri": "1446-12-21",
+                          "fajr": 1750197120,
+                          "syuruk": 1750201440,
+                          "dhuhr": 1750223820,
+                          "asr": 1750236180,
+                          "maghrib": 1750245960,
+                          "isha": 1750250520
+                        },
+                        {
+                          "day": 19,
+                          "hijri": "1446-12-22",
+                          "fajr": 1750283520,
+                          "syuruk": 1750287900,
+                          "dhuhr": 1750310220,
+                          "asr": 1750322580,
+                          "maghrib": 1750332360,
+                          "isha": 1750336920
+                        },
+                        {
+                          "day": 20,
+                          "hijri": "1446-12-23",
+                          "fajr": 1750369920,
+                          "syuruk": 1750374300,
+                          "dhuhr": 1750396680,
+                          "asr": 1750408980,
+                          "maghrib": 1750418820,
+                          "isha": 1750423320
+                        },
+                        {
+                          "day": 21,
+                          "hijri": "1446-12-24",
+                          "fajr": 1750456320,
+                          "syuruk": 1750460700,
+                          "dhuhr": 1750483080,
+                          "asr": 1750495440,
+                          "maghrib": 1750505220,
+                          "isha": 1750509780
+                        },
+                        {
+                          "day": 22,
+                          "hijri": "1446-12-25",
+                          "fajr": 1750542720,
+                          "syuruk": 1750547100,
+                          "dhuhr": 1750569480,
+                          "asr": 1750581840,
+                          "maghrib": 1750591620,
+                          "isha": 1750596180
+                        },
+                        {
+                          "day": 23,
+                          "hijri": "1446-12-26",
+                          "fajr": 1750629180,
+                          "syuruk": 1750633500,
+                          "dhuhr": 1750655880,
+                          "asr": 1750668240,
+                          "maghrib": 1750678020,
+                          "isha": 1750682580
+                        },
+                        {
+                          "day": 24,
+                          "hijri": "1446-12-27",
+                          "fajr": 1750715580,
+                          "syuruk": 1750719960,
+                          "dhuhr": 1750742280,
+                          "asr": 1750754640,
+                          "maghrib": 1750764480,
+                          "isha": 1750768980
+                        },
+                        {
+                          "day": 25,
+                          "hijri": "1446-12-28",
+                          "fajr": 1750801980,
+                          "syuruk": 1750806360,
+                          "dhuhr": 1750828740,
+                          "asr": 1750841100,
+                          "maghrib": 1750850880,
+                          "isha": 1750855380
+                        },
+                        {
+                          "day": 26,
+                          "hijri": "1446-12-29",
+                          "fajr": 1750888380,
+                          "syuruk": 1750892760,
+                          "dhuhr": 1750915140,
+                          "asr": 1750927500,
+                          "maghrib": 1750937280,
+                          "isha": 1750941840
+                        },
+                        {
+                          "day": 27,
+                          "hijri": "1447-01-01",
+                          "fajr": 1750974840,
+                          "syuruk": 1750979160,
+                          "dhuhr": 1751001540,
+                          "asr": 1751013900,
+                          "maghrib": 1751023680,
+                          "isha": 1751028240
+                        },
+                        {
+                          "day": 28,
+                          "hijri": "1447-01-02",
+                          "fajr": 1751061240,
+                          "syuruk": 1751065620,
+                          "dhuhr": 1751087940,
+                          "asr": 1751100300,
+                          "maghrib": 1751110080,
+                          "isha": 1751114640
+                        },
+                        {
+                          "day": 29,
+                          "hijri": "1447-01-03",
+                          "fajr": 1751147640,
+                          "syuruk": 1751152020,
+                          "dhuhr": 1751174400,
+                          "asr": 1751186700,
+                          "maghrib": 1751196540,
+                          "isha": 1751201040
+                        },
+                        {
+                          "day": 30,
+                          "hijri": "1447-01-04",
+                          "fajr": 1751234040,
+                          "syuruk": 1751238420,
+                          "dhuhr": 1751260800,
+                          "asr": 1751273100,
+                          "maghrib": 1751282940,
+                          "isha": 1751287440
+                        }
+                      ],
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "hijri": {
+                            "type": "string",
+                            "example": "1446-12-04"
+                          },
+                          "fajr": {
+                            "type": "integer",
+                            "example": 1748728140
+                          },
+                          "syuruk": {
+                            "type": "integer",
+                            "example": 1748732460
+                          },
+                          "dhuhr": {
+                            "type": "integer",
+                            "example": 1748754840
+                          },
+                          "asr": {
+                            "type": "integer",
+                            "example": 1748767140
+                          },
+                          "maghrib": {
+                            "type": "integer",
+                            "example": 1748776920
+                          },
+                          "isha": {
+                            "type": "integer",
+                            "example": 1748781420
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Data not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "No data found for zone: XXXXX for MMM/YYYY"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No data found for zone: XXXXX for MMM/YYYY"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Server error"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "SOLAT V2"
+        ],
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "zone",
+          "description": "The JAKIM zone code. See all zones using `/api/zones` endpoint.",
+          "example": "SGR01",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/v2/solat/{lat}/{long}": {
+      "get": {
+        "summary": "v2/Prayer Time by GPS",
+        "operationId": "v2PrayerTimeByGPS",
+        "description": "Deprecated: Use /v2/solat/gps/{lat}/{long} instead. This endpoint has incorrect URL format and will be removed in 2026.\nReturn the prayer times in a specific month with automatic zone detection based on GPS coordinates.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "description": "The year. Defaults to current year.",
+            "example": 2025,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The year. Defaults to current year.",
+              "example": 2025,
+              "nullable": false
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+            "example": 6,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+              "example": 6,
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "zone": "SGR01",
+                    "year": 2025,
+                    "month": "JUN",
+                    "month_number": 6,
+                    "last_updated": null,
+                    "prayers": [
+                      {
+                        "day": 1,
+                        "hijri": "1446-12-04",
+                        "fajr": 1748728140,
+                        "syuruk": 1748732460,
+                        "dhuhr": 1748754840,
+                        "asr": 1748767140,
+                        "maghrib": 1748776920,
+                        "isha": 1748781420
+                      },
+                      {
+                        "day": 2,
+                        "hijri": "1446-12-05",
+                        "fajr": 1748814540,
+                        "syuruk": 1748818920,
+                        "dhuhr": 1748841240,
+                        "asr": 1748853540,
+                        "maghrib": 1748863380,
+                        "isha": 1748867880
+                      },
+                      {
+                        "day": 3,
+                        "hijri": "1446-12-06",
+                        "fajr": 1748900940,
+                        "syuruk": 1748905320,
+                        "dhuhr": 1748927640,
+                        "asr": 1748939940,
+                        "maghrib": 1748949780,
+                        "isha": 1748954280
+                      },
+                      {
+                        "day": 4,
+                        "hijri": "1446-12-07",
+                        "fajr": 1748987400,
+                        "syuruk": 1748991720,
+                        "dhuhr": 1749014040,
+                        "asr": 1749026340,
+                        "maghrib": 1749036180,
+                        "isha": 1749040680
+                      },
+                      {
+                        "day": 5,
+                        "hijri": "1446-12-08",
+                        "fajr": 1749073800,
+                        "syuruk": 1749078120,
+                        "dhuhr": 1749100500,
+                        "asr": 1749112800,
+                        "maghrib": 1749122580,
+                        "isha": 1749127140
+                      },
+                      {
+                        "day": 6,
+                        "hijri": "1446-12-09",
+                        "fajr": 1749160200,
+                        "syuruk": 1749164520,
+                        "dhuhr": 1749186900,
+                        "asr": 1749199200,
+                        "maghrib": 1749209040,
+                        "isha": 1749213540
+                      },
+                      {
+                        "day": 7,
+                        "hijri": "1446-12-10",
+                        "fajr": 1749246600,
+                        "syuruk": 1749250920,
+                        "dhuhr": 1749273300,
+                        "asr": 1749285600,
+                        "maghrib": 1749295440,
+                        "isha": 1749299940
+                      },
+                      {
+                        "day": 8,
+                        "hijri": "1446-12-11",
+                        "fajr": 1749333000,
+                        "syuruk": 1749337320,
+                        "dhuhr": 1749359700,
+                        "asr": 1749372060,
+                        "maghrib": 1749381840,
+                        "isha": 1749386340
+                      },
+                      {
+                        "day": 9,
+                        "hijri": "1446-12-12",
+                        "fajr": 1749419400,
+                        "syuruk": 1749423780,
+                        "dhuhr": 1749446100,
+                        "asr": 1749458460,
+                        "maghrib": 1749468240,
+                        "isha": 1749472800
+                      },
+                      {
+                        "day": 10,
+                        "hijri": "1446-12-13",
+                        "fajr": 1749505800,
+                        "syuruk": 1749510180,
+                        "dhuhr": 1749532500,
+                        "asr": 1749544860,
+                        "maghrib": 1749554640,
+                        "isha": 1749559200
+                      },
+                      {
+                        "day": 11,
+                        "hijri": "1446-12-14",
+                        "fajr": 1749592200,
+                        "syuruk": 1749596580,
+                        "dhuhr": 1749618960,
+                        "asr": 1749631260,
+                        "maghrib": 1749641100,
+                        "isha": 1749645600
+                      },
+                      {
+                        "day": 12,
+                        "hijri": "1446-12-15",
+                        "fajr": 1749678600,
+                        "syuruk": 1749682980,
+                        "dhuhr": 1749705360,
+                        "asr": 1749717720,
+                        "maghrib": 1749727500,
+                        "isha": 1749732000
+                      },
+                      {
+                        "day": 13,
+                        "hijri": "1446-12-16",
+                        "fajr": 1749765060,
+                        "syuruk": 1749769380,
+                        "dhuhr": 1749791760,
+                        "asr": 1749804120,
+                        "maghrib": 1749813900,
+                        "isha": 1749818460
+                      },
+                      {
+                        "day": 14,
+                        "hijri": "1446-12-17",
+                        "fajr": 1749851460,
+                        "syuruk": 1749855780,
+                        "dhuhr": 1749878160,
+                        "asr": 1749890520,
+                        "maghrib": 1749900300,
+                        "isha": 1749904860
+                      },
+                      {
+                        "day": 15,
+                        "hijri": "1446-12-18",
+                        "fajr": 1749937860,
+                        "syuruk": 1749942240,
+                        "dhuhr": 1749964620,
+                        "asr": 1749976920,
+                        "maghrib": 1749986760,
+                        "isha": 1749991260
+                      },
+                      {
+                        "day": 16,
+                        "hijri": "1446-12-19",
+                        "fajr": 1750024260,
+                        "syuruk": 1750028640,
+                        "dhuhr": 1750051020,
+                        "asr": 1750063380,
+                        "maghrib": 1750073160,
+                        "isha": 1750077660
+                      },
+                      {
+                        "day": 17,
+                        "hijri": "1446-12-20",
+                        "fajr": 1750110660,
+                        "syuruk": 1750115040,
+                        "dhuhr": 1750137420,
+                        "asr": 1750149780,
+                        "maghrib": 1750159560,
+                        "isha": 1750164120
+                      },
+                      {
+                        "day": 18,
+                        "hijri": "1446-12-21",
+                        "fajr": 1750197120,
+                        "syuruk": 1750201440,
+                        "dhuhr": 1750223820,
+                        "asr": 1750236180,
+                        "maghrib": 1750245960,
+                        "isha": 1750250520
+                      },
+                      {
+                        "day": 19,
+                        "hijri": "1446-12-22",
+                        "fajr": 1750283520,
+                        "syuruk": 1750287900,
+                        "dhuhr": 1750310220,
+                        "asr": 1750322580,
+                        "maghrib": 1750332360,
+                        "isha": 1750336920
+                      },
+                      {
+                        "day": 20,
+                        "hijri": "1446-12-23",
+                        "fajr": 1750369920,
+                        "syuruk": 1750374300,
+                        "dhuhr": 1750396680,
+                        "asr": 1750408980,
+                        "maghrib": 1750418820,
+                        "isha": 1750423320
+                      },
+                      {
+                        "day": 21,
+                        "hijri": "1446-12-24",
+                        "fajr": 1750456320,
+                        "syuruk": 1750460700,
+                        "dhuhr": 1750483080,
+                        "asr": 1750495440,
+                        "maghrib": 1750505220,
+                        "isha": 1750509780
+                      },
+                      {
+                        "day": 22,
+                        "hijri": "1446-12-25",
+                        "fajr": 1750542720,
+                        "syuruk": 1750547100,
+                        "dhuhr": 1750569480,
+                        "asr": 1750581840,
+                        "maghrib": 1750591620,
+                        "isha": 1750596180
+                      },
+                      {
+                        "day": 23,
+                        "hijri": "1446-12-26",
+                        "fajr": 1750629180,
+                        "syuruk": 1750633500,
+                        "dhuhr": 1750655880,
+                        "asr": 1750668240,
+                        "maghrib": 1750678020,
+                        "isha": 1750682580
+                      },
+                      {
+                        "day": 24,
+                        "hijri": "1446-12-27",
+                        "fajr": 1750715580,
+                        "syuruk": 1750719960,
+                        "dhuhr": 1750742280,
+                        "asr": 1750754640,
+                        "maghrib": 1750764480,
+                        "isha": 1750768980
+                      },
+                      {
+                        "day": 25,
+                        "hijri": "1446-12-28",
+                        "fajr": 1750801980,
+                        "syuruk": 1750806360,
+                        "dhuhr": 1750828740,
+                        "asr": 1750841100,
+                        "maghrib": 1750850880,
+                        "isha": 1750855380
+                      },
+                      {
+                        "day": 26,
+                        "hijri": "1446-12-29",
+                        "fajr": 1750888380,
+                        "syuruk": 1750892760,
+                        "dhuhr": 1750915140,
+                        "asr": 1750927500,
+                        "maghrib": 1750937280,
+                        "isha": 1750941840
+                      },
+                      {
+                        "day": 27,
+                        "hijri": "1447-01-01",
+                        "fajr": 1750974840,
+                        "syuruk": 1750979160,
+                        "dhuhr": 1751001540,
+                        "asr": 1751013900,
+                        "maghrib": 1751023680,
+                        "isha": 1751028240
+                      },
+                      {
+                        "day": 28,
+                        "hijri": "1447-01-02",
+                        "fajr": 1751061240,
+                        "syuruk": 1751065620,
+                        "dhuhr": 1751087940,
+                        "asr": 1751100300,
+                        "maghrib": 1751110080,
+                        "isha": 1751114640
+                      },
+                      {
+                        "day": 29,
+                        "hijri": "1447-01-03",
+                        "fajr": 1751147640,
+                        "syuruk": 1751152020,
+                        "dhuhr": 1751174400,
+                        "asr": 1751186700,
+                        "maghrib": 1751196540,
+                        "isha": 1751201040
+                      },
+                      {
+                        "day": 30,
+                        "hijri": "1447-01-04",
+                        "fajr": 1751234040,
+                        "syuruk": 1751238420,
+                        "dhuhr": 1751260800,
+                        "asr": 1751273100,
+                        "maghrib": 1751282940,
+                        "isha": 1751287440
+                      }
+                    ]
+                  },
+                  "properties": {
+                    "zone": {
+                      "type": "string",
+                      "example": "SGR01"
+                    },
+                    "year": {
+                      "type": "integer",
+                      "example": 2025
+                    },
+                    "month": {
+                      "type": "string",
+                      "example": "JUN"
+                    },
+                    "month_number": {
+                      "type": "integer",
+                      "example": 6
+                    },
+                    "last_updated": {
+                      "type": "string",
+                      "example": null
+                    },
+                    "prayers": {
+                      "type": "array",
+                      "example": [
+                        {
+                          "day": 1,
+                          "hijri": "1446-12-04",
+                          "fajr": 1748728140,
+                          "syuruk": 1748732460,
+                          "dhuhr": 1748754840,
+                          "asr": 1748767140,
+                          "maghrib": 1748776920,
+                          "isha": 1748781420
+                        },
+                        {
+                          "day": 2,
+                          "hijri": "1446-12-05",
+                          "fajr": 1748814540,
+                          "syuruk": 1748818920,
+                          "dhuhr": 1748841240,
+                          "asr": 1748853540,
+                          "maghrib": 1748863380,
+                          "isha": 1748867880
+                        },
+                        {
+                          "day": 3,
+                          "hijri": "1446-12-06",
+                          "fajr": 1748900940,
+                          "syuruk": 1748905320,
+                          "dhuhr": 1748927640,
+                          "asr": 1748939940,
+                          "maghrib": 1748949780,
+                          "isha": 1748954280
+                        },
+                        {
+                          "day": 4,
+                          "hijri": "1446-12-07",
+                          "fajr": 1748987400,
+                          "syuruk": 1748991720,
+                          "dhuhr": 1749014040,
+                          "asr": 1749026340,
+                          "maghrib": 1749036180,
+                          "isha": 1749040680
+                        },
+                        {
+                          "day": 5,
+                          "hijri": "1446-12-08",
+                          "fajr": 1749073800,
+                          "syuruk": 1749078120,
+                          "dhuhr": 1749100500,
+                          "asr": 1749112800,
+                          "maghrib": 1749122580,
+                          "isha": 1749127140
+                        },
+                        {
+                          "day": 6,
+                          "hijri": "1446-12-09",
+                          "fajr": 1749160200,
+                          "syuruk": 1749164520,
+                          "dhuhr": 1749186900,
+                          "asr": 1749199200,
+                          "maghrib": 1749209040,
+                          "isha": 1749213540
+                        },
+                        {
+                          "day": 7,
+                          "hijri": "1446-12-10",
+                          "fajr": 1749246600,
+                          "syuruk": 1749250920,
+                          "dhuhr": 1749273300,
+                          "asr": 1749285600,
+                          "maghrib": 1749295440,
+                          "isha": 1749299940
+                        },
+                        {
+                          "day": 8,
+                          "hijri": "1446-12-11",
+                          "fajr": 1749333000,
+                          "syuruk": 1749337320,
+                          "dhuhr": 1749359700,
+                          "asr": 1749372060,
+                          "maghrib": 1749381840,
+                          "isha": 1749386340
+                        },
+                        {
+                          "day": 9,
+                          "hijri": "1446-12-12",
+                          "fajr": 1749419400,
+                          "syuruk": 1749423780,
+                          "dhuhr": 1749446100,
+                          "asr": 1749458460,
+                          "maghrib": 1749468240,
+                          "isha": 1749472800
+                        },
+                        {
+                          "day": 10,
+                          "hijri": "1446-12-13",
+                          "fajr": 1749505800,
+                          "syuruk": 1749510180,
+                          "dhuhr": 1749532500,
+                          "asr": 1749544860,
+                          "maghrib": 1749554640,
+                          "isha": 1749559200
+                        },
+                        {
+                          "day": 11,
+                          "hijri": "1446-12-14",
+                          "fajr": 1749592200,
+                          "syuruk": 1749596580,
+                          "dhuhr": 1749618960,
+                          "asr": 1749631260,
+                          "maghrib": 1749641100,
+                          "isha": 1749645600
+                        },
+                        {
+                          "day": 12,
+                          "hijri": "1446-12-15",
+                          "fajr": 1749678600,
+                          "syuruk": 1749682980,
+                          "dhuhr": 1749705360,
+                          "asr": 1749717720,
+                          "maghrib": 1749727500,
+                          "isha": 1749732000
+                        },
+                        {
+                          "day": 13,
+                          "hijri": "1446-12-16",
+                          "fajr": 1749765060,
+                          "syuruk": 1749769380,
+                          "dhuhr": 1749791760,
+                          "asr": 1749804120,
+                          "maghrib": 1749813900,
+                          "isha": 1749818460
+                        },
+                        {
+                          "day": 14,
+                          "hijri": "1446-12-17",
+                          "fajr": 1749851460,
+                          "syuruk": 1749855780,
+                          "dhuhr": 1749878160,
+                          "asr": 1749890520,
+                          "maghrib": 1749900300,
+                          "isha": 1749904860
+                        },
+                        {
+                          "day": 15,
+                          "hijri": "1446-12-18",
+                          "fajr": 1749937860,
+                          "syuruk": 1749942240,
+                          "dhuhr": 1749964620,
+                          "asr": 1749976920,
+                          "maghrib": 1749986760,
+                          "isha": 1749991260
+                        },
+                        {
+                          "day": 16,
+                          "hijri": "1446-12-19",
+                          "fajr": 1750024260,
+                          "syuruk": 1750028640,
+                          "dhuhr": 1750051020,
+                          "asr": 1750063380,
+                          "maghrib": 1750073160,
+                          "isha": 1750077660
+                        },
+                        {
+                          "day": 17,
+                          "hijri": "1446-12-20",
+                          "fajr": 1750110660,
+                          "syuruk": 1750115040,
+                          "dhuhr": 1750137420,
+                          "asr": 1750149780,
+                          "maghrib": 1750159560,
+                          "isha": 1750164120
+                        },
+                        {
+                          "day": 18,
+                          "hijri": "1446-12-21",
+                          "fajr": 1750197120,
+                          "syuruk": 1750201440,
+                          "dhuhr": 1750223820,
+                          "asr": 1750236180,
+                          "maghrib": 1750245960,
+                          "isha": 1750250520
+                        },
+                        {
+                          "day": 19,
+                          "hijri": "1446-12-22",
+                          "fajr": 1750283520,
+                          "syuruk": 1750287900,
+                          "dhuhr": 1750310220,
+                          "asr": 1750322580,
+                          "maghrib": 1750332360,
+                          "isha": 1750336920
+                        },
+                        {
+                          "day": 20,
+                          "hijri": "1446-12-23",
+                          "fajr": 1750369920,
+                          "syuruk": 1750374300,
+                          "dhuhr": 1750396680,
+                          "asr": 1750408980,
+                          "maghrib": 1750418820,
+                          "isha": 1750423320
+                        },
+                        {
+                          "day": 21,
+                          "hijri": "1446-12-24",
+                          "fajr": 1750456320,
+                          "syuruk": 1750460700,
+                          "dhuhr": 1750483080,
+                          "asr": 1750495440,
+                          "maghrib": 1750505220,
+                          "isha": 1750509780
+                        },
+                        {
+                          "day": 22,
+                          "hijri": "1446-12-25",
+                          "fajr": 1750542720,
+                          "syuruk": 1750547100,
+                          "dhuhr": 1750569480,
+                          "asr": 1750581840,
+                          "maghrib": 1750591620,
+                          "isha": 1750596180
+                        },
+                        {
+                          "day": 23,
+                          "hijri": "1446-12-26",
+                          "fajr": 1750629180,
+                          "syuruk": 1750633500,
+                          "dhuhr": 1750655880,
+                          "asr": 1750668240,
+                          "maghrib": 1750678020,
+                          "isha": 1750682580
+                        },
+                        {
+                          "day": 24,
+                          "hijri": "1446-12-27",
+                          "fajr": 1750715580,
+                          "syuruk": 1750719960,
+                          "dhuhr": 1750742280,
+                          "asr": 1750754640,
+                          "maghrib": 1750764480,
+                          "isha": 1750768980
+                        },
+                        {
+                          "day": 25,
+                          "hijri": "1446-12-28",
+                          "fajr": 1750801980,
+                          "syuruk": 1750806360,
+                          "dhuhr": 1750828740,
+                          "asr": 1750841100,
+                          "maghrib": 1750850880,
+                          "isha": 1750855380
+                        },
+                        {
+                          "day": 26,
+                          "hijri": "1446-12-29",
+                          "fajr": 1750888380,
+                          "syuruk": 1750892760,
+                          "dhuhr": 1750915140,
+                          "asr": 1750927500,
+                          "maghrib": 1750937280,
+                          "isha": 1750941840
+                        },
+                        {
+                          "day": 27,
+                          "hijri": "1447-01-01",
+                          "fajr": 1750974840,
+                          "syuruk": 1750979160,
+                          "dhuhr": 1751001540,
+                          "asr": 1751013900,
+                          "maghrib": 1751023680,
+                          "isha": 1751028240
+                        },
+                        {
+                          "day": 28,
+                          "hijri": "1447-01-02",
+                          "fajr": 1751061240,
+                          "syuruk": 1751065620,
+                          "dhuhr": 1751087940,
+                          "asr": 1751100300,
+                          "maghrib": 1751110080,
+                          "isha": 1751114640
+                        },
+                        {
+                          "day": 29,
+                          "hijri": "1447-01-03",
+                          "fajr": 1751147640,
+                          "syuruk": 1751152020,
+                          "dhuhr": 1751174400,
+                          "asr": 1751186700,
+                          "maghrib": 1751196540,
+                          "isha": 1751201040
+                        },
+                        {
+                          "day": 30,
+                          "hijri": "1447-01-04",
+                          "fajr": 1751234040,
+                          "syuruk": 1751238420,
+                          "dhuhr": 1751260800,
+                          "asr": 1751273100,
+                          "maghrib": 1751282940,
+                          "isha": 1751287440
+                        }
+                      ],
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "hijri": {
+                            "type": "string",
+                            "example": "1446-12-04"
+                          },
+                          "fajr": {
+                            "type": "integer",
+                            "example": 1748728140
+                          },
+                          "syuruk": {
+                            "type": "integer",
+                            "example": 1748732460
+                          },
+                          "dhuhr": {
+                            "type": "integer",
+                            "example": 1748754840
+                          },
+                          "asr": {
+                            "type": "integer",
+                            "example": 1748767140
+                          },
+                          "maghrib": {
+                            "type": "integer",
+                            "example": 1748776920
+                          },
+                          "isha": {
+                            "type": "integer",
+                            "example": 1748781420
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Data not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "No data found for zone: XXXXX for MMM/YYYY"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No data found for zone: XXXXX for MMM/YYYY"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Server error"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "SOLAT V2"
+        ],
+        "deprecated": true,
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "lat",
+          "description": "The latitude coordinate.",
+          "example": 3.068498,
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "in": "path",
+          "name": "long",
+          "description": "The longitude coordinate.",
+          "example": 101.630263,
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ]
+    },
+    "/v2/solat/gps/{lat}/{long}": {
+      "get": {
+        "summary": "v2/Prayer Time by GPS",
+        "operationId": "v2PrayerTimeByGPS",
+        "description": "Return the prayer times in a specific month with automatic zone detection based on GPS coordinates.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "year",
+            "description": "The year. Defaults to current year.",
+            "example": 2025,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The year. Defaults to current year.",
+              "example": 2025,
+              "nullable": false
+            }
+          },
+          {
+            "in": "query",
+            "name": "month",
+            "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+            "example": 6,
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "description": "The month number. 1 => January, 2 => February etc. Defaults to current month.",
+              "example": 6,
+              "nullable": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "zone": "SGR01",
+                    "year": 2025,
+                    "month": "JUN",
+                    "month_number": 6,
+                    "last_updated": null,
+                    "prayers": [
+                      {
+                        "day": 1,
+                        "hijri": "1446-12-04",
+                        "fajr": 1748728140,
+                        "syuruk": 1748732460,
+                        "dhuhr": 1748754840,
+                        "asr": 1748767140,
+                        "maghrib": 1748776920,
+                        "isha": 1748781420
+                      },
+                      {
+                        "day": 2,
+                        "hijri": "1446-12-05",
+                        "fajr": 1748814540,
+                        "syuruk": 1748818920,
+                        "dhuhr": 1748841240,
+                        "asr": 1748853540,
+                        "maghrib": 1748863380,
+                        "isha": 1748867880
+                      },
+                      {
+                        "day": 3,
+                        "hijri": "1446-12-06",
+                        "fajr": 1748900940,
+                        "syuruk": 1748905320,
+                        "dhuhr": 1748927640,
+                        "asr": 1748939940,
+                        "maghrib": 1748949780,
+                        "isha": 1748954280
+                      },
+                      {
+                        "day": 4,
+                        "hijri": "1446-12-07",
+                        "fajr": 1748987400,
+                        "syuruk": 1748991720,
+                        "dhuhr": 1749014040,
+                        "asr": 1749026340,
+                        "maghrib": 1749036180,
+                        "isha": 1749040680
+                      },
+                      {
+                        "day": 5,
+                        "hijri": "1446-12-08",
+                        "fajr": 1749073800,
+                        "syuruk": 1749078120,
+                        "dhuhr": 1749100500,
+                        "asr": 1749112800,
+                        "maghrib": 1749122580,
+                        "isha": 1749127140
+                      },
+                      {
+                        "day": 6,
+                        "hijri": "1446-12-09",
+                        "fajr": 1749160200,
+                        "syuruk": 1749164520,
+                        "dhuhr": 1749186900,
+                        "asr": 1749199200,
+                        "maghrib": 1749209040,
+                        "isha": 1749213540
+                      },
+                      {
+                        "day": 7,
+                        "hijri": "1446-12-10",
+                        "fajr": 1749246600,
+                        "syuruk": 1749250920,
+                        "dhuhr": 1749273300,
+                        "asr": 1749285600,
+                        "maghrib": 1749295440,
+                        "isha": 1749299940
+                      },
+                      {
+                        "day": 8,
+                        "hijri": "1446-12-11",
+                        "fajr": 1749333000,
+                        "syuruk": 1749337320,
+                        "dhuhr": 1749359700,
+                        "asr": 1749372060,
+                        "maghrib": 1749381840,
+                        "isha": 1749386340
+                      },
+                      {
+                        "day": 9,
+                        "hijri": "1446-12-12",
+                        "fajr": 1749419400,
+                        "syuruk": 1749423780,
+                        "dhuhr": 1749446100,
+                        "asr": 1749458460,
+                        "maghrib": 1749468240,
+                        "isha": 1749472800
+                      },
+                      {
+                        "day": 10,
+                        "hijri": "1446-12-13",
+                        "fajr": 1749505800,
+                        "syuruk": 1749510180,
+                        "dhuhr": 1749532500,
+                        "asr": 1749544860,
+                        "maghrib": 1749554640,
+                        "isha": 1749559200
+                      },
+                      {
+                        "day": 11,
+                        "hijri": "1446-12-14",
+                        "fajr": 1749592200,
+                        "syuruk": 1749596580,
+                        "dhuhr": 1749618960,
+                        "asr": 1749631260,
+                        "maghrib": 1749641100,
+                        "isha": 1749645600
+                      },
+                      {
+                        "day": 12,
+                        "hijri": "1446-12-15",
+                        "fajr": 1749678600,
+                        "syuruk": 1749682980,
+                        "dhuhr": 1749705360,
+                        "asr": 1749717720,
+                        "maghrib": 1749727500,
+                        "isha": 1749732000
+                      },
+                      {
+                        "day": 13,
+                        "hijri": "1446-12-16",
+                        "fajr": 1749765060,
+                        "syuruk": 1749769380,
+                        "dhuhr": 1749791760,
+                        "asr": 1749804120,
+                        "maghrib": 1749813900,
+                        "isha": 1749818460
+                      },
+                      {
+                        "day": 14,
+                        "hijri": "1446-12-17",
+                        "fajr": 1749851460,
+                        "syuruk": 1749855780,
+                        "dhuhr": 1749878160,
+                        "asr": 1749890520,
+                        "maghrib": 1749900300,
+                        "isha": 1749904860
+                      },
+                      {
+                        "day": 15,
+                        "hijri": "1446-12-18",
+                        "fajr": 1749937860,
+                        "syuruk": 1749942240,
+                        "dhuhr": 1749964620,
+                        "asr": 1749976920,
+                        "maghrib": 1749986760,
+                        "isha": 1749991260
+                      },
+                      {
+                        "day": 16,
+                        "hijri": "1446-12-19",
+                        "fajr": 1750024260,
+                        "syuruk": 1750028640,
+                        "dhuhr": 1750051020,
+                        "asr": 1750063380,
+                        "maghrib": 1750073160,
+                        "isha": 1750077660
+                      },
+                      {
+                        "day": 17,
+                        "hijri": "1446-12-20",
+                        "fajr": 1750110660,
+                        "syuruk": 1750115040,
+                        "dhuhr": 1750137420,
+                        "asr": 1750149780,
+                        "maghrib": 1750159560,
+                        "isha": 1750164120
+                      },
+                      {
+                        "day": 18,
+                        "hijri": "1446-12-21",
+                        "fajr": 1750197120,
+                        "syuruk": 1750201440,
+                        "dhuhr": 1750223820,
+                        "asr": 1750236180,
+                        "maghrib": 1750245960,
+                        "isha": 1750250520
+                      },
+                      {
+                        "day": 19,
+                        "hijri": "1446-12-22",
+                        "fajr": 1750283520,
+                        "syuruk": 1750287900,
+                        "dhuhr": 1750310220,
+                        "asr": 1750322580,
+                        "maghrib": 1750332360,
+                        "isha": 1750336920
+                      },
+                      {
+                        "day": 20,
+                        "hijri": "1446-12-23",
+                        "fajr": 1750369920,
+                        "syuruk": 1750374300,
+                        "dhuhr": 1750396680,
+                        "asr": 1750408980,
+                        "maghrib": 1750418820,
+                        "isha": 1750423320
+                      },
+                      {
+                        "day": 21,
+                        "hijri": "1446-12-24",
+                        "fajr": 1750456320,
+                        "syuruk": 1750460700,
+                        "dhuhr": 1750483080,
+                        "asr": 1750495440,
+                        "maghrib": 1750505220,
+                        "isha": 1750509780
+                      },
+                      {
+                        "day": 22,
+                        "hijri": "1446-12-25",
+                        "fajr": 1750542720,
+                        "syuruk": 1750547100,
+                        "dhuhr": 1750569480,
+                        "asr": 1750581840,
+                        "maghrib": 1750591620,
+                        "isha": 1750596180
+                      },
+                      {
+                        "day": 23,
+                        "hijri": "1446-12-26",
+                        "fajr": 1750629180,
+                        "syuruk": 1750633500,
+                        "dhuhr": 1750655880,
+                        "asr": 1750668240,
+                        "maghrib": 1750678020,
+                        "isha": 1750682580
+                      },
+                      {
+                        "day": 24,
+                        "hijri": "1446-12-27",
+                        "fajr": 1750715580,
+                        "syuruk": 1750719960,
+                        "dhuhr": 1750742280,
+                        "asr": 1750754640,
+                        "maghrib": 1750764480,
+                        "isha": 1750768980
+                      },
+                      {
+                        "day": 25,
+                        "hijri": "1446-12-28",
+                        "fajr": 1750801980,
+                        "syuruk": 1750806360,
+                        "dhuhr": 1750828740,
+                        "asr": 1750841100,
+                        "maghrib": 1750850880,
+                        "isha": 1750855380
+                      },
+                      {
+                        "day": 26,
+                        "hijri": "1446-12-29",
+                        "fajr": 1750888380,
+                        "syuruk": 1750892760,
+                        "dhuhr": 1750915140,
+                        "asr": 1750927500,
+                        "maghrib": 1750937280,
+                        "isha": 1750941840
+                      },
+                      {
+                        "day": 27,
+                        "hijri": "1447-01-01",
+                        "fajr": 1750974840,
+                        "syuruk": 1750979160,
+                        "dhuhr": 1751001540,
+                        "asr": 1751013900,
+                        "maghrib": 1751023680,
+                        "isha": 1751028240
+                      },
+                      {
+                        "day": 28,
+                        "hijri": "1447-01-02",
+                        "fajr": 1751061240,
+                        "syuruk": 1751065620,
+                        "dhuhr": 1751087940,
+                        "asr": 1751100300,
+                        "maghrib": 1751110080,
+                        "isha": 1751114640
+                      },
+                      {
+                        "day": 29,
+                        "hijri": "1447-01-03",
+                        "fajr": 1751147640,
+                        "syuruk": 1751152020,
+                        "dhuhr": 1751174400,
+                        "asr": 1751186700,
+                        "maghrib": 1751196540,
+                        "isha": 1751201040
+                      },
+                      {
+                        "day": 30,
+                        "hijri": "1447-01-04",
+                        "fajr": 1751234040,
+                        "syuruk": 1751238420,
+                        "dhuhr": 1751260800,
+                        "asr": 1751273100,
+                        "maghrib": 1751282940,
+                        "isha": 1751287440
+                      }
+                    ]
+                  },
+                  "properties": {
+                    "zone": {
+                      "type": "string",
+                      "example": "SGR01"
+                    },
+                    "year": {
+                      "type": "integer",
+                      "example": 2025
+                    },
+                    "month": {
+                      "type": "string",
+                      "example": "JUN"
+                    },
+                    "month_number": {
+                      "type": "integer",
+                      "example": 6
+                    },
+                    "last_updated": {
+                      "type": "string",
+                      "example": null
+                    },
+                    "prayers": {
+                      "type": "array",
+                      "example": [
+                        {
+                          "day": 1,
+                          "hijri": "1446-12-04",
+                          "fajr": 1748728140,
+                          "syuruk": 1748732460,
+                          "dhuhr": 1748754840,
+                          "asr": 1748767140,
+                          "maghrib": 1748776920,
+                          "isha": 1748781420
+                        },
+                        {
+                          "day": 2,
+                          "hijri": "1446-12-05",
+                          "fajr": 1748814540,
+                          "syuruk": 1748818920,
+                          "dhuhr": 1748841240,
+                          "asr": 1748853540,
+                          "maghrib": 1748863380,
+                          "isha": 1748867880
+                        },
+                        {
+                          "day": 3,
+                          "hijri": "1446-12-06",
+                          "fajr": 1748900940,
+                          "syuruk": 1748905320,
+                          "dhuhr": 1748927640,
+                          "asr": 1748939940,
+                          "maghrib": 1748949780,
+                          "isha": 1748954280
+                        },
+                        {
+                          "day": 4,
+                          "hijri": "1446-12-07",
+                          "fajr": 1748987400,
+                          "syuruk": 1748991720,
+                          "dhuhr": 1749014040,
+                          "asr": 1749026340,
+                          "maghrib": 1749036180,
+                          "isha": 1749040680
+                        },
+                        {
+                          "day": 5,
+                          "hijri": "1446-12-08",
+                          "fajr": 1749073800,
+                          "syuruk": 1749078120,
+                          "dhuhr": 1749100500,
+                          "asr": 1749112800,
+                          "maghrib": 1749122580,
+                          "isha": 1749127140
+                        },
+                        {
+                          "day": 6,
+                          "hijri": "1446-12-09",
+                          "fajr": 1749160200,
+                          "syuruk": 1749164520,
+                          "dhuhr": 1749186900,
+                          "asr": 1749199200,
+                          "maghrib": 1749209040,
+                          "isha": 1749213540
+                        },
+                        {
+                          "day": 7,
+                          "hijri": "1446-12-10",
+                          "fajr": 1749246600,
+                          "syuruk": 1749250920,
+                          "dhuhr": 1749273300,
+                          "asr": 1749285600,
+                          "maghrib": 1749295440,
+                          "isha": 1749299940
+                        },
+                        {
+                          "day": 8,
+                          "hijri": "1446-12-11",
+                          "fajr": 1749333000,
+                          "syuruk": 1749337320,
+                          "dhuhr": 1749359700,
+                          "asr": 1749372060,
+                          "maghrib": 1749381840,
+                          "isha": 1749386340
+                        },
+                        {
+                          "day": 9,
+                          "hijri": "1446-12-12",
+                          "fajr": 1749419400,
+                          "syuruk": 1749423780,
+                          "dhuhr": 1749446100,
+                          "asr": 1749458460,
+                          "maghrib": 1749468240,
+                          "isha": 1749472800
+                        },
+                        {
+                          "day": 10,
+                          "hijri": "1446-12-13",
+                          "fajr": 1749505800,
+                          "syuruk": 1749510180,
+                          "dhuhr": 1749532500,
+                          "asr": 1749544860,
+                          "maghrib": 1749554640,
+                          "isha": 1749559200
+                        },
+                        {
+                          "day": 11,
+                          "hijri": "1446-12-14",
+                          "fajr": 1749592200,
+                          "syuruk": 1749596580,
+                          "dhuhr": 1749618960,
+                          "asr": 1749631260,
+                          "maghrib": 1749641100,
+                          "isha": 1749645600
+                        },
+                        {
+                          "day": 12,
+                          "hijri": "1446-12-15",
+                          "fajr": 1749678600,
+                          "syuruk": 1749682980,
+                          "dhuhr": 1749705360,
+                          "asr": 1749717720,
+                          "maghrib": 1749727500,
+                          "isha": 1749732000
+                        },
+                        {
+                          "day": 13,
+                          "hijri": "1446-12-16",
+                          "fajr": 1749765060,
+                          "syuruk": 1749769380,
+                          "dhuhr": 1749791760,
+                          "asr": 1749804120,
+                          "maghrib": 1749813900,
+                          "isha": 1749818460
+                        },
+                        {
+                          "day": 14,
+                          "hijri": "1446-12-17",
+                          "fajr": 1749851460,
+                          "syuruk": 1749855780,
+                          "dhuhr": 1749878160,
+                          "asr": 1749890520,
+                          "maghrib": 1749900300,
+                          "isha": 1749904860
+                        },
+                        {
+                          "day": 15,
+                          "hijri": "1446-12-18",
+                          "fajr": 1749937860,
+                          "syuruk": 1749942240,
+                          "dhuhr": 1749964620,
+                          "asr": 1749976920,
+                          "maghrib": 1749986760,
+                          "isha": 1749991260
+                        },
+                        {
+                          "day": 16,
+                          "hijri": "1446-12-19",
+                          "fajr": 1750024260,
+                          "syuruk": 1750028640,
+                          "dhuhr": 1750051020,
+                          "asr": 1750063380,
+                          "maghrib": 1750073160,
+                          "isha": 1750077660
+                        },
+                        {
+                          "day": 17,
+                          "hijri": "1446-12-20",
+                          "fajr": 1750110660,
+                          "syuruk": 1750115040,
+                          "dhuhr": 1750137420,
+                          "asr": 1750149780,
+                          "maghrib": 1750159560,
+                          "isha": 1750164120
+                        },
+                        {
+                          "day": 18,
+                          "hijri": "1446-12-21",
+                          "fajr": 1750197120,
+                          "syuruk": 1750201440,
+                          "dhuhr": 1750223820,
+                          "asr": 1750236180,
+                          "maghrib": 1750245960,
+                          "isha": 1750250520
+                        },
+                        {
+                          "day": 19,
+                          "hijri": "1446-12-22",
+                          "fajr": 1750283520,
+                          "syuruk": 1750287900,
+                          "dhuhr": 1750310220,
+                          "asr": 1750322580,
+                          "maghrib": 1750332360,
+                          "isha": 1750336920
+                        },
+                        {
+                          "day": 20,
+                          "hijri": "1446-12-23",
+                          "fajr": 1750369920,
+                          "syuruk": 1750374300,
+                          "dhuhr": 1750396680,
+                          "asr": 1750408980,
+                          "maghrib": 1750418820,
+                          "isha": 1750423320
+                        },
+                        {
+                          "day": 21,
+                          "hijri": "1446-12-24",
+                          "fajr": 1750456320,
+                          "syuruk": 1750460700,
+                          "dhuhr": 1750483080,
+                          "asr": 1750495440,
+                          "maghrib": 1750505220,
+                          "isha": 1750509780
+                        },
+                        {
+                          "day": 22,
+                          "hijri": "1446-12-25",
+                          "fajr": 1750542720,
+                          "syuruk": 1750547100,
+                          "dhuhr": 1750569480,
+                          "asr": 1750581840,
+                          "maghrib": 1750591620,
+                          "isha": 1750596180
+                        },
+                        {
+                          "day": 23,
+                          "hijri": "1446-12-26",
+                          "fajr": 1750629180,
+                          "syuruk": 1750633500,
+                          "dhuhr": 1750655880,
+                          "asr": 1750668240,
+                          "maghrib": 1750678020,
+                          "isha": 1750682580
+                        },
+                        {
+                          "day": 24,
+                          "hijri": "1446-12-27",
+                          "fajr": 1750715580,
+                          "syuruk": 1750719960,
+                          "dhuhr": 1750742280,
+                          "asr": 1750754640,
+                          "maghrib": 1750764480,
+                          "isha": 1750768980
+                        },
+                        {
+                          "day": 25,
+                          "hijri": "1446-12-28",
+                          "fajr": 1750801980,
+                          "syuruk": 1750806360,
+                          "dhuhr": 1750828740,
+                          "asr": 1750841100,
+                          "maghrib": 1750850880,
+                          "isha": 1750855380
+                        },
+                        {
+                          "day": 26,
+                          "hijri": "1446-12-29",
+                          "fajr": 1750888380,
+                          "syuruk": 1750892760,
+                          "dhuhr": 1750915140,
+                          "asr": 1750927500,
+                          "maghrib": 1750937280,
+                          "isha": 1750941840
+                        },
+                        {
+                          "day": 27,
+                          "hijri": "1447-01-01",
+                          "fajr": 1750974840,
+                          "syuruk": 1750979160,
+                          "dhuhr": 1751001540,
+                          "asr": 1751013900,
+                          "maghrib": 1751023680,
+                          "isha": 1751028240
+                        },
+                        {
+                          "day": 28,
+                          "hijri": "1447-01-02",
+                          "fajr": 1751061240,
+                          "syuruk": 1751065620,
+                          "dhuhr": 1751087940,
+                          "asr": 1751100300,
+                          "maghrib": 1751110080,
+                          "isha": 1751114640
+                        },
+                        {
+                          "day": 29,
+                          "hijri": "1447-01-03",
+                          "fajr": 1751147640,
+                          "syuruk": 1751152020,
+                          "dhuhr": 1751174400,
+                          "asr": 1751186700,
+                          "maghrib": 1751196540,
+                          "isha": 1751201040
+                        },
+                        {
+                          "day": 30,
+                          "hijri": "1447-01-04",
+                          "fajr": 1751234040,
+                          "syuruk": 1751238420,
+                          "dhuhr": 1751260800,
+                          "asr": 1751273100,
+                          "maghrib": 1751282940,
+                          "isha": 1751287440
+                        }
+                      ],
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "day": {
+                            "type": "integer",
+                            "example": 1
+                          },
+                          "hijri": {
+                            "type": "string",
+                            "example": "1446-12-04"
+                          },
+                          "fajr": {
+                            "type": "integer",
+                            "example": 1748728140
+                          },
+                          "syuruk": {
+                            "type": "integer",
+                            "example": 1748732460
+                          },
+                          "dhuhr": {
+                            "type": "integer",
+                            "example": 1748754840
+                          },
+                          "asr": {
+                            "type": "integer",
+                            "example": 1748767140
+                          },
+                          "maghrib": {
+                            "type": "integer",
+                            "example": 1748776920
+                          },
+                          "isha": {
+                            "type": "integer",
+                            "example": 1748781420
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Data not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "No data found for zone: XXXXX for MMM/YYYY"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No data found for zone: XXXXX for MMM/YYYY"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "message": "Server error"
+                  },
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "SOLAT V2"
+        ],
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "lat",
+          "description": "The latitude coordinate.",
+          "example": 3.068498,
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "in": "path",
+          "name": "long",
+          "description": "The longitude coordinate.",
+          "example": 101.630263,
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ]
+    },
+    "/zones": {
+      "get": {
+        "summary": "All Zones",
+        "operationId": "allZones",
+        "description": "Return all zones information based on JAKIM Zones. See zones visually at https://peta.waktusolat.app/",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "jakimCode": {
+                        "type": "string",
+                        "example": "JHR01"
+                      },
+                      "negeri": {
+                        "type": "string",
+                        "example": "Johor"
+                      },
+                      "daerah": {
+                        "type": "string",
+                        "example": "Pulau Aur dan Pulau Pemanggil"
+                      }
+                    }
+                  },
+                  "example": [
+                    {
+                      "jakimCode": "JHR01",
+                      "negeri": "Johor",
+                      "daerah": "Pulau Aur dan Pulau Pemanggil"
+                    },
+                    {
+                      "jakimCode": "JHR02",
+                      "negeri": "Johor",
+                      "daerah": "Johor Bahru, Kota Tinggi, Mersing, Kulai"
+                    },
+                    {
+                      "jakimCode": "JHR03",
+                      "negeri": "Johor",
+                      "daerah": "Kluang, Pontian"
+                    },
+                    {
+                      "jakimCode": "JHR04",
+                      "negeri": "Johor",
+                      "daerah": "Batu Pahat, Muar, Segamat, Gemas Johor, Tangkak"
+                    },
+                    {
+                      "jakimCode": "KDH01",
+                      "negeri": "Kedah",
+                      "daerah": "Kota Setar, Kubang Pasu, Pokok Sena (Daerah Kecil)"
+                    },
+                    {
+                      "jakimCode": "KDH02",
+                      "negeri": "Kedah",
+                      "daerah": "Kuala Muda, Yan, Pendang"
+                    },
+                    {
+                      "jakimCode": "KDH03",
+                      "negeri": "Kedah",
+                      "daerah": "Padang Terap, Sik"
+                    },
+                    {
+                      "jakimCode": "KDH04",
+                      "negeri": "Kedah",
+                      "daerah": "Baling"
+                    },
+                    {
+                      "jakimCode": "KDH05",
+                      "negeri": "Kedah",
+                      "daerah": "Bandar Baharu, Kulim"
+                    },
+                    {
+                      "jakimCode": "KDH06",
+                      "negeri": "Kedah",
+                      "daerah": "Langkawi"
+                    },
+                    {
+                      "jakimCode": "KDH07",
+                      "negeri": "Kedah",
+                      "daerah": "Puncak Gunung Jerai"
+                    },
+                    {
+                      "jakimCode": "KTN01",
+                      "negeri": "Kelantan",
+                      "daerah": "Bachok, Kota Bharu, Machang, Pasir Mas, Pasir Puteh, Tanah Merah, Tumpat, Kuala Krai, Mukim Chiku"
+                    },
+                    {
+                      "jakimCode": "KTN02",
+                      "negeri": "Kelantan",
+                      "daerah": "Gua Musang (Daerah Galas Dan Bertam), Jeli, Jajahan Kecil Lojing"
+                    },
+                    {
+                      "jakimCode": "MLK01",
+                      "negeri": "Melaka",
+                      "daerah": "SELURUH NEGERI MELAKA"
+                    },
+                    {
+                      "jakimCode": "NGS01",
+                      "negeri": "Negeri Sembilan",
+                      "daerah": "Tampin, Jempol"
+                    },
+                    {
+                      "jakimCode": "NGS02",
+                      "negeri": "Negeri Sembilan",
+                      "daerah": "Jelebu, Kuala Pilah, Rembau"
+                    },
+                    {
+                      "jakimCode": "NGS03",
+                      "negeri": "Negeri Sembilan",
+                      "daerah": "Port Dickson, Seremban"
+                    },
+                    {
+                      "jakimCode": "PHG01",
+                      "negeri": "Pahang",
+                      "daerah": "Pulau Tioman"
+                    },
+                    {
+                      "jakimCode": "PHG02",
+                      "negeri": "Pahang",
+                      "daerah": "Kuantan, Pekan, Muadzam Shah"
+                    },
+                    {
+                      "jakimCode": "PHG03",
+                      "negeri": "Pahang",
+                      "daerah": "Jerantut, Temerloh, Maran, Bera, Chenor, Jengka"
+                    },
+                    {
+                      "jakimCode": "PHG04",
+                      "negeri": "Pahang",
+                      "daerah": "Bentong, Lipis, Raub"
+                    },
+                    {
+                      "jakimCode": "PHG05",
+                      "negeri": "Pahang",
+                      "daerah": "Genting Sempah, Janda Baik, Bukit Tinggi"
+                    },
+                    {
+                      "jakimCode": "PHG06",
+                      "negeri": "Pahang",
+                      "daerah": "Cameron Highlands, Genting Higlands, Bukit Fraser"
+                    },
+                    {
+                      "jakimCode": "PHG07",
+                      "negeri": "Pahang",
+                      "daerah": "Zon Khas Daerah Rompin, (Mukim Rompin, Mukim Endau, Mukim Pontian)"
+                    },
+                    {
+                      "jakimCode": "PRK01",
+                      "negeri": "Perak",
+                      "daerah": "Tapah, Slim River, Tanjung Malim"
+                    },
+                    {
+                      "jakimCode": "PRK02",
+                      "negeri": "Perak",
+                      "daerah": "Kuala Kangsar, Sg. Siput , Ipoh, Batu Gajah, Kampar"
+                    },
+                    {
+                      "jakimCode": "PRK03",
+                      "negeri": "Perak",
+                      "daerah": "Lenggong, Pengkalan Hulu, Grik"
+                    },
+                    {
+                      "jakimCode": "PRK04",
+                      "negeri": "Perak",
+                      "daerah": "Temengor, Belum"
+                    },
+                    {
+                      "jakimCode": "PRK05",
+                      "negeri": "Perak",
+                      "daerah": "Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor"
+                    },
+                    {
+                      "jakimCode": "PRK06",
+                      "negeri": "Perak",
+                      "daerah": "Selama, Taiping, Bagan Serai, Parit Buntar"
+                    },
+                    {
+                      "jakimCode": "PRK07",
+                      "negeri": "Perak",
+                      "daerah": "Bukit Larut"
+                    },
+                    {
+                      "jakimCode": "PLS01",
+                      "negeri": "Perlis",
+                      "daerah": "SELURUH NEGERI PERLIS"
+                    },
+                    {
+                      "jakimCode": "PNG01",
+                      "negeri": "Pulau Pinang",
+                      "daerah": "SELURUH NEGERI PULAU PINANG"
+                    },
+                    {
+                      "jakimCode": "SBH01",
+                      "negeri": "Sabah",
+                      "daerah": "Bahagian Sandakan (Timur), Bukit Garam, Semawang, Temanggong, Tambisan, Bandar Sandakan, Sukau"
+                    },
+                    {
+                      "jakimCode": "SBH02",
+                      "negeri": "Sabah",
+                      "daerah": "Beluran, Telupid, Pinangah, Terusan, Kuamut, Bahagian Sandakan (Barat)"
+                    },
+                    {
+                      "jakimCode": "SBH03",
+                      "negeri": "Sabah",
+                      "daerah": "Lahad Datu, Silabukan, Kunak, Sahabat, Semporna, Tungku, Bahagian Tawau (Timur)"
+                    },
+                    {
+                      "jakimCode": "SBH04",
+                      "negeri": "Sabah",
+                      "daerah": "Bandar Tawau, Balong, Merotai, Kalabakan, Bahagian Tawau (Barat)"
+                    },
+                    {
+                      "jakimCode": "SBH05",
+                      "negeri": "Sabah",
+                      "daerah": "Kudat, Kota Marudu, Pitas, Pulau Banggi, Bahagian Kudat"
+                    },
+                    {
+                      "jakimCode": "SBH06",
+                      "negeri": "Sabah",
+                      "daerah": "Gunung Kinabalu"
+                    },
+                    {
+                      "jakimCode": "SBH07",
+                      "negeri": "Sabah",
+                      "daerah": "Kota Kinabalu, Ranau, Kota Belud, Tuaran, Penampang, Papar, Putatan, Bahagian Pantai Barat"
+                    },
+                    {
+                      "jakimCode": "SBH08",
+                      "negeri": "Sabah",
+                      "daerah": "Pensiangan, Keningau, Tambunan, Nabawan, Bahagian Pendalaman (Atas)"
+                    },
+                    {
+                      "jakimCode": "SBH09",
+                      "negeri": "Sabah",
+                      "daerah": "Beaufort, Kuala Penyu, Sipitang, Tenom, Long Pasia, Membakut, Weston, Bahagian Pendalaman (Bawah)"
+                    },
+                    {
+                      "jakimCode": "SWK01",
+                      "negeri": "Sarawak",
+                      "daerah": "Limbang, Lawas, Sundar, Trusan"
+                    },
+                    {
+                      "jakimCode": "SWK02",
+                      "negeri": "Sarawak",
+                      "daerah": "Miri, Niah, Bekenu, Sibuti, Marudi"
+                    },
+                    {
+                      "jakimCode": "SWK03",
+                      "negeri": "Sarawak",
+                      "daerah": "Pandan, Belaga, Suai, Tatau, Sebauh, Bintulu"
+                    },
+                    {
+                      "jakimCode": "SWK04",
+                      "negeri": "Sarawak",
+                      "daerah": "Sibu, Mukah, Dalat, Song, Igan, Oya, Balingian, Kanowit, Kapit"
+                    },
+                    {
+                      "jakimCode": "SWK05",
+                      "negeri": "Sarawak",
+                      "daerah": "Sarikei, Matu, Julau, Rajang, Daro, Bintangor, Belawai"
+                    },
+                    {
+                      "jakimCode": "SWK06",
+                      "negeri": "Sarawak",
+                      "daerah": "Lubok Antu, Sri Aman, Roban, Debak, Kabong, Lingga, Engkelili, Betong, Spaoh, Pusa, Saratok"
+                    },
+                    {
+                      "jakimCode": "SWK07",
+                      "negeri": "Sarawak",
+                      "daerah": "Serian, Simunjan, Samarahan, Sebuyau, Meludam"
+                    },
+                    {
+                      "jakimCode": "SWK08",
+                      "negeri": "Sarawak",
+                      "daerah": "Kuching, Bau, Lundu, Sematan"
+                    },
+                    {
+                      "jakimCode": "SWK09",
+                      "negeri": "Sarawak",
+                      "daerah": "Zon Khas (Kampung Patarikan)"
+                    },
+                    {
+                      "jakimCode": "SGR01",
+                      "negeri": "Selangor",
+                      "daerah": "Gombak, Petaling, Sepang, Hulu Langat, Hulu Selangor, Shah Alam"
+                    },
+                    {
+                      "jakimCode": "SGR02",
+                      "negeri": "Selangor",
+                      "daerah": "Kuala Selangor, Sabak Bernam"
+                    },
+                    {
+                      "jakimCode": "SGR03",
+                      "negeri": "Selangor",
+                      "daerah": "Klang, Kuala Langat"
+                    },
+                    {
+                      "jakimCode": "TRG01",
+                      "negeri": "Terengganu",
+                      "daerah": "Kuala Terengganu, Marang, Kuala Nerus"
+                    },
+                    {
+                      "jakimCode": "TRG02",
+                      "negeri": "Terengganu",
+                      "daerah": "Besut, Setiu"
+                    },
+                    {
+                      "jakimCode": "TRG03",
+                      "negeri": "Terengganu",
+                      "daerah": "Hulu Terengganu"
+                    },
+                    {
+                      "jakimCode": "TRG04",
+                      "negeri": "Terengganu",
+                      "daerah": "Dungun, Kemaman"
+                    },
+                    {
+                      "jakimCode": "WLY01",
+                      "negeri": "Wilayah Persekutuan",
+                      "daerah": "Kuala Lumpur, Putrajaya"
+                    },
+                    {
+                      "jakimCode": "WLY02",
+                      "negeri": "Wilayah Persekutuan",
+                      "daerah": "Labuan"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ZONES"
+        ],
+        "security": []
+      }
+    },
+    "/zones/{state}": {
+      "get": {
+        "summary": "All Zones for the given state",
+        "operationId": "allZonesForTheGivenState",
+        "description": "Return all zones information based on JAKIM Zones from the given state (Negeri) initial.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "jakimCode": {
+                        "type": "string",
+                        "example": "PRK01"
+                      },
+                      "negeri": {
+                        "type": "string",
+                        "example": "Perak"
+                      },
+                      "daerah": {
+                        "type": "string",
+                        "example": "Tapah, Slim River, Tanjung Malim"
+                      }
+                    }
+                  },
+                  "example": [
+                    {
+                      "jakimCode": "PRK01",
+                      "negeri": "Perak",
+                      "daerah": "Tapah, Slim River, Tanjung Malim"
+                    },
+                    {
+                      "jakimCode": "PRK02",
+                      "negeri": "Perak",
+                      "daerah": "Kuala Kangsar, Sg. Siput , Ipoh, Batu Gajah, Kampar"
+                    },
+                    {
+                      "jakimCode": "PRK03",
+                      "negeri": "Perak",
+                      "daerah": "Lenggong, Pengkalan Hulu, Grik"
+                    },
+                    {
+                      "jakimCode": "PRK04",
+                      "negeri": "Perak",
+                      "daerah": "Temengor, Belum"
+                    },
+                    {
+                      "jakimCode": "PRK05",
+                      "negeri": "Perak",
+                      "daerah": "Kg Gajah, Teluk Intan, Bagan Datuk, Seri Iskandar, Beruas, Parit, Lumut, Sitiawan, Pulau Pangkor"
+                    },
+                    {
+                      "jakimCode": "PRK06",
+                      "negeri": "Perak",
+                      "daerah": "Selama, Taiping, Bagan Serai, Parit Buntar"
+                    },
+                    {
+                      "jakimCode": "PRK07",
+                      "negeri": "Perak",
+                      "daerah": "Bukit Larut"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ZONES"
+        ],
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "state",
+          "description": "The state (negeri) initial. Eg: `prk` for Perak, `sbh` for Sabah etc.).",
+          "example": "prk",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "/zones/{lat}/{long}": {
+      "get": {
+        "summary": "Get zone by GPS coordinates.",
+        "operationId": "getZoneByGPSCoordinates",
+        "description": "Return the zone information for the given coordinates.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "example": {
+                    "zone": "SGR01",
+                    "state": "SGR",
+                    "district": "Petaling"
+                  },
+                  "properties": {
+                    "zone": {
+                      "type": "string",
+                      "example": "SGR01"
+                    },
+                    "state": {
+                      "type": "string",
+                      "example": "SGR"
+                    },
+                    "district": {
+                      "type": "string",
+                      "example": "Petaling"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "ZONES"
+        ],
+        "security": []
+      },
+      "parameters": [
+        {
+          "in": "path",
+          "name": "lat",
+          "description": "The latitude coordinate.",
+          "example": 3.068498,
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        },
+        {
+          "in": "path",
+          "name": "long",
+          "description": "The longitude coordinate.",
+          "example": 101.630263,
+          "required": true,
+          "schema": {
+            "type": "number"
+          }
+        }
+      ]
+    }
+  }
+}
