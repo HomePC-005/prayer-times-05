@@ -54,7 +54,21 @@ class PrayerTimeApp {
                 apiError: "Gagal mendapatkan data waktu solat.",
                 gpsError: "Gagal mengesan lokasi. Menggunakan zon lalai.",
                 noDataFound: "Tiada data waktu solat dijumpai untuk tarikh ini"
-            }
+            },
+            bulan_islam: [
+                { "order": 1, "month": "Muharram" },
+                { "order": 2, "month": "Safar" },
+                { "order": 3, "month": "Rabiulawal" },
+                { "order": 4, "month": "Rabiulakhir" },
+                { "order": 5, "month": "Jamadilawal" },
+                { "order": 6, "month": "Jamadilakhir" },
+                { "order": 7, "month": "Rejab" },
+                { "order": 8, "month": "Syaaban" },
+                { "order": 9, "month": "Ramadan" },
+                { "order": 10, "month": "Syawal" },
+                { "order": 11, "month": "Zulkaedah" },
+                { "order": 12, "month": "Zulhijjah" }
+            ]
         };
     }
 
@@ -614,17 +628,43 @@ class PrayerTimeApp {
     }
 
     /**
-     * Enhanced Hijri date display with day name
+     * Enhanced Hijri date display with day name and formatted date
      */
     updateHijriDateDisplay() {
         const hijriElement = document.getElementById("hijri-date");
         if (hijriElement && this.state.currentHijriDate) {
             const dayName = this.state.todayPrayerTimes["Day"] || "";
+            const formattedHijri = this.formatHijriDate(this.state.currentHijriDate);
             const hijriText = dayName ?
-                `${dayName} - ${this.state.currentHijriDate}` :
-                this.state.currentHijriDate;
+                `${dayName} - ${formattedHijri}` :
+                formattedHijri;
 
             hijriElement.textContent = `Tarikh Hijri: ${hijriText}`;
+        }
+    }
+
+    /**
+     * Format Hijri date from YYYY-MM-DD to DD Month YYYYH
+     */
+    formatHijriDate(hijriStr) {
+        if (!hijriStr) return "";
+
+        try {
+            // Expected format YYYY-MM-DD
+            const parts = hijriStr.split("-");
+            if (parts.length !== 3) return hijriStr; // Return original if format doesn't match
+
+            const year = parts[0];
+            const monthIndex = parseInt(parts[1], 10);
+            const day = parts[2];
+
+            const monthObj = this.locale.bulan_islam.find(m => m.order === monthIndex);
+            const monthName = monthObj ? monthObj.month : parts[1];
+
+            return `${day} ${monthName} ${year}H`;
+        } catch (e) {
+            console.warn("Error formatting Hijri date:", e);
+            return hijriStr;
         }
     }
 
