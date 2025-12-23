@@ -444,10 +444,29 @@ class PrayerTimeApp {
         }
 
         const trimmed = timeStr.trim();
-        const parts = trimmed.split(" ");
 
+        // Handle API format (HH:mm:ss) or (HH:mm) - 24 hour format
+        // If it doesn't contain a space (separator for AM/PM), treat as 24h
+        if (!trimmed.includes(" ")) {
+            const timeParts = trimmed.split(":");
+            if (timeParts.length < 2) {
+                throw new Error(`Invalid time format: "${timeStr}"`);
+            }
+
+            const hour = parseInt(timeParts[0], 10);
+            const minute = parseInt(timeParts[1], 10);
+
+            if (isNaN(hour) || isNaN(minute)) {
+                throw new Error(`Invalid time values: "${timeStr}"`);
+            }
+
+            return { hour, minute };
+        }
+
+        // Handle Legacy format (HH:mm AM/PM)
+        const parts = trimmed.split(" ");
         if (parts.length !== 2) {
-            throw new Error(`Invalid time format: "${timeStr}". Expected format: "5:59 AM"`);
+            throw new Error(`Invalid time format: "${timeStr}". Expected "HH:mm AM/PM" or "HH:mm:ss"`);
         }
 
         const [time, modifier] = parts;
@@ -462,7 +481,7 @@ class PrayerTimeApp {
         const minute = parseInt(minuteStr, 10);
 
         if (isNaN(hour) || isNaN(minute)) {
-            throw new Error(`Invalid time values: "${timeStr}". Hour: ${hourStr}, Minute: ${minuteStr}`);
+            throw new Error(`Invalid time values: "${timeStr}"`);
         }
 
         if (hour < 1 || hour > 12) {
