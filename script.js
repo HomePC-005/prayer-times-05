@@ -435,6 +435,12 @@ class PrayerTimeApp {
      * Ensure time is in clean format (HH:mm:ss) or (HH:mm)
      */
     fixTimeFormat(timeStr) {
+        if (!timeStr) return "";
+        // Extract HH:mm from HH:mm:ss
+        const parts = timeStr.split(":");
+        if (parts.length >= 2) {
+            return `${parts[0]}:${parts[1]}`;
+        }
         return timeStr;
     }
 
