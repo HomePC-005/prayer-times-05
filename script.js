@@ -642,10 +642,10 @@ class PrayerTimeApp {
             const dayName = this.state.todayPrayerTimes["Day"] || "";
             const formattedHijri = this.formatHijriDate(this.state.currentHijriDate);
             const hijriText = dayName ?
-                `${dayName} - ${formattedHijri}` :
+                `${formattedHijri}` :
                 formattedHijri;
 
-            hijriElement.textContent = `Tarikh Hijri: ${hijriText}`;
+            hijriElement.textContent = `${hijriText}`;
         }
     }
 
@@ -993,7 +993,7 @@ class PrayerTimeApp {
             if (statusBar) {
                 if (navigator.onLine) {
                     statusBar.classList.add('connected');
-                    statusBar.innerHTML = '<span>● Data JAKIM Rasmi</span>';
+                    statusBar.innerHTML = '<span>Sumber: JAKIM</span>';
                 } else {
                     statusBar.classList.remove('connected');
                     statusBar.innerHTML = '<span class="status-offline">● Offline</span>';
@@ -1332,3 +1332,4 @@ For TV usage:
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = PrayerTimeApp;
 }
+
