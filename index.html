@@ -334,44 +334,134 @@
       background: #333;
       border-color: #777;
     }
+/* =========================================
+     MOBILE RESPONSIVE PORTRAIT MODE (List View)
+     Add this to the bottom of your CSS
+     ========================================= */
 
-    /* Responsive adjustments */
-    @media (max-height: 900px) {
-      #current-time {
-        font-size: 12rem;
-      }
+  @media screen and (max-width: 768px) {
 
-      .gregorian-date {
-        font-size: 2rem;
-      }
-
-      .prayer-name {
-        font-size: 1.8rem;
-      }
-
-      .prayer-time {
-        font-size: 2rem;
-      }
-
-      .next-prayer {
-        font-size: 2.4rem;
-      }
+    /* 1. Canvas & Scroll Settings */
+    html, body {
+      overflow-y: auto; /* Enable scrolling */
+      height: auto;
+      min-height: 100%;
     }
 
-    @media (max-width: 1400px) {
-      .prayer-table td {
-        min-width: 180px;
-        padding: 20px 15px;
-      }
-
-      .prayer-name {
-        font-size: 1.8rem;
-      }
-
-      .prayer-time {
-        font-size: 2rem;
-      }
+    .main-container {
+      height: auto;
+      min-height: 100vh;
+      padding: 15px;
+      justify-content: flex-start;
     }
+
+    /* 2. Header Adjustments */
+    .header-section {
+      margin-bottom: 10px;
+    }
+
+    .location-info { font-size: 1.2rem; }
+    .gregorian-date { font-size: 1.4rem; }
+    .hijri-date { font-size: 1rem; margin-bottom: 1rem; }
+
+    #zone-select {
+      font-size: 1rem !important;
+      padding: 8px !important;
+      width: 100% !important;
+    }
+
+    /* 3. Clock Scaling */
+    .clock-section {
+      flex: 0 0 auto;
+      margin-bottom: 25px;
+    }
+
+    #current-time {
+      font-size: 5rem; /* Large but fits screen */
+      margin-bottom: 0.2rem;
+    }
+
+    .next-prayer {
+      font-size: 1.4rem;
+      margin-bottom: 1rem;
+    }
+
+    /* 4. Prayer Table -> Vertical Card List Transformation */
+    .prayer-table {
+      display: block;
+      width: 100%;
+      border-spacing: 0;
+    }
+
+    .prayer-table tbody {
+      display: block;
+      width: 100%;
+    }
+
+    /* Make the row a vertical stack container */
+    .prayer-table tr {
+      display: flex;
+      flex-direction: column;
+      gap: 12px; /* Space between cards */
+      width: 100%;
+      padding-bottom: 40px; /* Space at bottom for scrolling */
+    }
+
+    /* The "Card" Style */
+    .prayer-table td {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      
+      /* Horizontal Layout: Name Left, Time Right */
+      display: flex;
+      flex-direction: row; 
+      justify-content: space-between;
+      align-items: center;
+      
+      padding: 20px 25px;
+      margin: 0;
+      text-align: left; /* Override center align */
+    }
+
+    /* Text Adjustments for Row Layout */
+    .prayer-name {
+      font-size: 1.6rem;
+      margin-bottom: 0; /* Remove bottom margin */
+    }
+
+    .prayer-time {
+      font-size: 1.8rem;
+    }
+
+    /* Active Card Mobile Tweak */
+    .prayer-table td.current {
+      transform: scale(1.02); /* Slight pop, not too wide */
+      border-width: 2px;
+    }
+
+    /* 5. Start Screen Mobile Fixes */
+    .start-title { font-size: 2rem; }
+    .button-text { font-size: 2.2rem; }
+    #start-button { padding: 20px; }
+
+    /* 6. Hide fixed status bars to clean up UI */
+    .status-bar, .data-source {
+      position: static;
+      display: inline-block;
+      margin: 10px 5px;
+      font-size: 0.8rem;
+      padding: 5px 15px;
+    }
+  }
+
+  /* Extra Small Screens */
+  @media screen and (max-width: 380px) {
+    #current-time { font-size: 4rem; }
+    .prayer-name { font-size: 1.3rem; }
+    .prayer-time { font-size: 1.5rem; }
+    .prayer-table td { padding: 15px; }
+  }
 
     /* Connection status animations */
     @keyframes connected {
@@ -689,3 +779,4 @@
 
 
 </html>
+
