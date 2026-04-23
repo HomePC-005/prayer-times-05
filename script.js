@@ -13,7 +13,15 @@ class PrayerTimeApp {
         this.PRAYER_NAMES = ["Imsak", "Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"];
         this.DISPLAY_PRAYER_NAMES = ["Subuh", "Syuruk", "Zohor", "Asar", "Maghrib", "Isyak"]; // For table display only
         this.AUDIO_NAMES = ["subuh", "syuruk", "zohor", "asar", "maghrib", "isyak"];
-        this.RECITATION_OFFSET_MIN = 10;
+        // Individual recitation offsets (in minutes) before each prayer time
+        this.RECITATION_OFFSETS = {
+            "Subuh": 10,    
+            "Syuruk": 5, 
+            "Zohor": 5, 
+            "Asar": 12, 
+            "Maghrib": 10, 
+            "Isyak": 10 
+        };
         this.UPDATE_INTERVAL = 1000;
         this.AUDIO_CLEAR_INTERVAL = 60 * 1000;
         this.AUDIO_TRIGGER_THRESHOLD = 1000; // 1 second tolerance
@@ -808,7 +816,9 @@ class PrayerTimeApp {
         if (!this.state.nextPrayer || !this.state.nextTimeMs) return;
 
         const nowMs = now.getTime();
-        const reciteTime = this.state.nextTimeMs - (this.RECITATION_OFFSET_MIN * 60 * 1000);
+        
+        const offsetMinutes = this.RECITATION_OFFSETS[this.state.nextPrayer] || 10;
+        const reciteTime = this.state.nextTimeMs - (offsetMinutes * 60 * 1000);
 
         // Skip audio for Imsak as it's not a prayer time, just fasting preparation
         if (this.state.nextPrayer === "Imsak") return;
