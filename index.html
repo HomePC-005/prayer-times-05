@@ -723,11 +723,19 @@
         });
       }
 
-      // Handle visibility changes for better performance
+      // Handle visibility changes for better performance and Wake Lock
       document.addEventListener('visibilitychange', function () {
-        if (!document.hidden && window.prayerApp) {
+        if (!document.hidden) {
           // Force update when page becomes visible
-          window.prayerApp.updateClock();
+          if (window.prayerApp) {
+            window.prayerApp.updateClock();
+          }
+          
+          // RE-REQUEST WAKE LOCK HERE!
+          // Only request it if we previously had a wake lock initialized
+          if (wakeLock !== null) {
+            requestWakeLock();
+          }
         }
       });
 
@@ -746,6 +754,34 @@
       });
     });
 
+// --- Wake Lock Feature ---
+    // Variable to store the wake lock object
+    let wakeLock = null;
+
+    // Function to request the screen to stay awake
+    const requestWakeLock = async () => {
+      try {
+        // Check if the browser supports the Wake Lock API
+        if ('wakeLock' in navigator) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          console.log('Wake Lock is active! Skrin tidak akan terpadam.');
+
+          // Listen for when the wake lock is released (e.g., low battery or tab minimized)
+          wakeLock.addEventListener('release', () => {
+            console.log('Wake Lock telah dilepaskan.');
+          });
+        } else {
+          console.log('Wake Lock API tidak disokong pada pelayar web ini.');
+        }
+      } catch (err) {
+        // Catch any errors, such as the user denying permission
+        console.error(`Ralat Wake Lock: ${err.name}, ${err.message}`);
+      }
+    };
+    // -------------------------
+    
+
+
     // Enhanced start app function
     function startApp() {
       const startScreen = document.getElementById('start-screen');
@@ -760,6 +796,8 @@
 
         // Store interaction for future auto-start
         localStorage.setItem('prayer-app-interacted', 'true');
+        
+        requestWakeLock();
 
         setTimeout(() => {
           startScreen.style.display = 'none';
